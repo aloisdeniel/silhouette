@@ -6,7 +6,7 @@ library;
 import 'ast.dart';
 import 'parser.dart';
 import 'analyzer.dart';
-import 'generator.dart';
+import 'generator/client.dart';
 
 /// Compilation result
 class CompileResult {
@@ -25,7 +25,7 @@ class CompileResult {
 class CompileOptions {
   /// Generate debug code
   final bool debug;
-  
+
   /// Component name (defaults to 'Component')
   final String? componentName;
 
@@ -56,7 +56,7 @@ class Compiler {
 
       // Add warnings for unused variables
       for (final binding in analysis.rootScope.declarations.values) {
-        if (binding.references.isEmpty && 
+        if (binding.references.isEmpty &&
             binding.kind != BindingKind.state &&
             binding.kind != BindingKind.derived) {
           warnings.add('Unused variable: ${binding.name}');
@@ -64,7 +64,7 @@ class Compiler {
       }
 
       // Phase 3: Generate
-      final generator = CodeGenerator(ast, analysis);
+      final generator = ClientCodeGenerator(ast, analysis);
       final code = generator.generate();
 
       return CompileResult(

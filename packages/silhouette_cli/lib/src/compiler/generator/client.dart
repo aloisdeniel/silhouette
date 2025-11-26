@@ -3,10 +3,10 @@
 /// Generates Dart code using package:web APIs
 library;
 
-import 'ast.dart';
-import 'analyzer.dart';
+import '../ast.dart';
+import '../analyzer.dart';
 
-class CodeGenerator {
+class ClientCodeGenerator {
   final RootNode ast;
   final AnalysisResult analysis;
   final StringBuffer _output = StringBuffer();
@@ -14,12 +14,12 @@ class CodeGenerator {
   int _tempVarCounter = 0;
   final Map<String, String> _elementVars = {};
 
-  CodeGenerator(this.ast, this.analysis);
+  ClientCodeGenerator(this.ast, this.analysis);
 
   /// Generate Dart code
   String generate() {
     _output.clear();
-    
+
     // Generate imports
     _writeLine("import 'dart:js_interop';");
     _writeLine("import 'package:web/web.dart';");
@@ -63,12 +63,13 @@ class CodeGenerator {
   void _generateStateFields() {
     for (final binding in analysis.stateBindings) {
       _writeLine('late final State<dynamic> _${binding.name};');
-      
+
       // Generate getter
       _writeLine('get ${binding.name} => _${binding.name}.value;');
-      
+
       // Generate setter
-      _writeLine('set ${binding.name}(value) => _${binding.name}.value = value;');
+      _writeLine(
+          'set ${binding.name}(value) => _${binding.name}.value = value;');
       _writeLine();
     }
   }
@@ -77,7 +78,7 @@ class CodeGenerator {
   void _generateDerivedFields() {
     for (final binding in analysis.derivedBindings) {
       _writeLine('late final Derived<dynamic> _${binding.name};');
-      
+
       // Generate getter
       _writeLine('get ${binding.name} => _${binding.name}.value;');
       _writeLine();
@@ -89,17 +90,9 @@ class CodeGenerator {
     _writeLine('$className() {');
     _indent++;
 
-    // Initialize state
-    for (final binding in analysis.stateBindings) {
-      final init = binding.initializer ?? 'null';
-      _writeLine('_${binding.name} = state($init);');
-    }
-
-    // Initialize derived
-    for (final binding in analysis.derivedBindings) {
-      // Extract the lambda from derived(() => expr)
-      var init = binding.initializer ?? '() => null';
-      _writeLine('_${binding.name} = derived($init);');
+    // Initialize state and derived values from script
+    if (ast.script != null) {
+      _generateVariableInitializations(ast.script!);
     }
 
     // Run script content (effects, etc.)
@@ -112,6 +105,84 @@ class CodeGenerator {
     _writeLine();
   }
 
+  /// Generate variable initializations from script
+  void _generateVariableInitializations(ScriptNode script) {
+    final content = script.content;
+
+    // Simple approach: use regex to match complete rune declarations
+    // For state: var name = state(value);
+    final statePattern = RegExp(
+      r'(?:var|final|late)\s+(\w+)\s*=\s*state\s*\(([^)]*)\)\s*;',
+      multiLine: true,
+    );
+
+    final stateMatches = statePattern.allMatches(content);
+    for (final match in stateMatches) {
+      final varName = match.group(1)!;
+      final init = match.group(2)!;
+      _writeLine('_$varName = state($init);');
+    }
+
+    // For derived: need to handle both arrow functions and block functions
+    // Use manual parsing to find derived declarations
+    final derivedPattern = RegExp(
+      r'(?:var|final|late)\s+(\w+)\s*=\s*derived\s*\(',
+      multiLine: true,
+    );
+
+    for (final match in derivedPattern.allMatches(content)) {
+      final varName = match.group(1)!;
+      final startPos = match.end; // Position after 'derived('
+
+      // Find the matching closing paren by counting
+      var parenCount = 1;
+      var braceCount = 0;
+      var inString = false;
+      var stringChar = '';
+      var i = startPos;
+
+      while (i < content.length && parenCount > 0) {
+        final char = content[i];
+
+        // Handle strings
+        if (!inString && (char == '"' || char == "'")) {
+          inString = true;
+          stringChar = char;
+        } else if (inString &&
+            char == stringChar &&
+            (i == 0 || content[i - 1] != '\\')) {
+          inString = false;
+        }
+
+        if (!inString) {
+          if (char == '(') parenCount++;
+          if (char == ')') parenCount--;
+          if (char == '{') braceCount++;
+          if (char == '}') braceCount--;
+        }
+
+        i++;
+      }
+
+      if (parenCount == 0) {
+        final derivedBody = content.substring(startPos, i - 1);
+        _writeLine('_$varName = derived($derivedBody);');
+      }
+    }
+
+    // For props: var name = props();
+    final propsPattern = RegExp(
+      r'(?:var|final|late)\s+(\w+)\s*=\s*props\s*\(\s*\)\s*;',
+      multiLine: true,
+    );
+
+    final propsMatches = propsPattern.allMatches(content);
+    for (final match in propsMatches) {
+      final varName = match.group(1)!;
+      _writeLine('_$varName = props();');
+    }
+  }
+
   /// Generate script effects
   void _generateScriptEffects(ScriptNode script) {
     // Extract and generate effect calls - use simpler regex-based approach
@@ -121,7 +192,7 @@ class CodeGenerator {
       multiLine: true,
       dotAll: true,
     );
-    
+
     final matches = effectPattern.allMatches(content);
     for (final match in matches) {
       _writeLine(match.group(0)!);
@@ -131,7 +202,7 @@ class CodeGenerator {
   /// Generate user-defined methods
   void _generateUserMethods() {
     if (ast.script == null) return;
-    
+
     final content = ast.script!.content;
     // Extract method definitions (void/return type followed by name and parens)
     final methodPattern = RegExp(
@@ -139,7 +210,7 @@ class CodeGenerator {
       multiLine: true,
       dotAll: true,
     );
-    
+
     final matches = methodPattern.allMatches(content);
     for (final match in matches) {
       _writeLine(match.group(0)!);
@@ -207,9 +278,10 @@ class CodeGenerator {
   /// Generate text node
   void _generateTextNode(TextNode node, String parent) {
     if (node.data.trim().isEmpty) return;
-    
+
     final textVar = _tempVar('text');
-    _writeLine('final $textVar = document.createTextNode("${_escapeString(node.data)}");');
+    _writeLine(
+        'final $textVar = document.createTextNode("${_escapeString(node.data)}");');
     _writeLine('$parent.appendChild($textVar);');
   }
 
@@ -218,7 +290,7 @@ class CodeGenerator {
     final textVar = _tempVar('text');
     _writeLine('final $textVar = document.createTextNode("");');
     _writeLine('$parent.appendChild($textVar);');
-    
+
     // Create effect to update text
     _writeLine('effect(() {');
     _indent++;
@@ -232,7 +304,7 @@ class CodeGenerator {
     final spanVar = _tempVar('html');
     _writeLine("final $spanVar = document.createElement('span');");
     _writeLine('$parent.appendChild($spanVar);');
-    
+
     // Create effect to update innerHTML
     _writeLine('effect(() {');
     _indent++;
@@ -245,7 +317,7 @@ class CodeGenerator {
   void _generateElement(ElementNode node, String parent) {
     final elemVar = _tempVar(node.name);
     _elementVars[node.name] = elemVar;
-    
+
     _writeLine("final $elemVar = document.createElement('${node.name}');");
 
     // Generate attributes
@@ -289,7 +361,7 @@ class CodeGenerator {
       // Create effect to update attribute
       _writeLine('effect(() {');
       _indent++;
-      
+
       final parts = <String>[];
       for (final value in attr.value) {
         if (value is TextAttributeValue) {
@@ -298,17 +370,16 @@ class CodeGenerator {
           parts.add('\${${value.expression}}');
         }
       }
-      
+
       _writeLine('$element.setAttribute("${attr.name}", "${parts.join()}");');
       _indent--;
       _writeLine('});');
     } else {
       // Static attribute
-      final text = attr.value
-          .whereType<TextAttributeValue>()
-          .map((v) => v.text)
-          .join();
-      _writeLine('$element.setAttribute("${attr.name}", "${_escapeString(text)}");');
+      final text =
+          attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
+      _writeLine(
+          '$element.setAttribute("${attr.name}", "${_escapeString(text)}");');
     }
   }
 
@@ -322,15 +393,26 @@ class CodeGenerator {
     if (attr.handler != null) {
       _writeLine("$element.addEventListener('${attr.event}', (Event event) {");
       _indent++;
-      // Check if handler is just a function name, add () to call it
+
       final handler = attr.handler!.trim();
-      if (RegExp(r'^[a-zA-Z_]\w*$').hasMatch(handler)) {
+
+      // Check if handler is a lambda expression: () => expression
+      if (handler.startsWith('()') && handler.contains('=>')) {
+        // Extract the expression after =>
+        final arrowIndex = handler.indexOf('=>');
+        final expression = handler.substring(arrowIndex + 2).trim();
+        _writeLine('$expression;');
+      }
+      // Check if handler is just a function name
+      else if (RegExp(r'^[a-zA-Z_]\w*$').hasMatch(handler)) {
         // Simple function name, call it
         _writeLine('$handler();');
-      } else {
-        // Expression or already has parens
+      }
+      // Otherwise treat as expression
+      else {
         _writeLine('$handler;');
       }
+
       _indent--;
       _writeLine('}.toJS);');
     }
@@ -345,7 +427,8 @@ class CodeGenerator {
       _indent++;
       _writeLine('if ($element.isA<HTMLInputElement>()) {');
       _indent++;
-      _writeLine('($element as HTMLInputElement).value = ${attr.value}.toString();');
+      _writeLine(
+          '($element as HTMLInputElement).value = ${attr.value}.toString();');
       _indent--;
       _writeLine('}');
       _indent--;
@@ -369,7 +452,7 @@ class CodeGenerator {
     final containerVar = _tempVar('if');
     _writeLine("final $containerVar = document.createElement('span');");
     _writeLine('$parent.appendChild($containerVar);');
-    
+
     _writeLine('effect(() {');
     _indent++;
     _writeLine('while ($containerVar.firstChild != null) {');
@@ -379,26 +462,26 @@ class CodeGenerator {
     _writeLine('}');
     _writeLine('if (${node.condition}) {');
     _indent++;
-    
+
     for (final child in node.consequent) {
       _generateTemplateNode(child, containerVar);
     }
-    
+
     _indent--;
     _writeLine('}');
-    
+
     if (node.alternate != null && node.alternate!.isNotEmpty) {
       _writeLine('else {');
       _indent++;
-      
+
       for (final child in node.alternate!) {
         _generateTemplateNode(child, containerVar);
       }
-      
+
       _indent--;
       _writeLine('}');
     }
-    
+
     _indent--;
     _writeLine('});');
   }
@@ -408,7 +491,7 @@ class CodeGenerator {
     final containerVar = _tempVar('each');
     _writeLine("final $containerVar = document.createElement('span');");
     _writeLine('$parent.appendChild($containerVar);');
-    
+
     _writeLine('effect(() {');
     _indent++;
     _writeLine('while ($containerVar.firstChild != null) {');
@@ -416,16 +499,17 @@ class CodeGenerator {
     _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
     _indent--;
     _writeLine('}');
-    
+
     final indexName = node.indexName ?? 'index';
-    _writeLine('for (var $indexName = 0; $indexName < ${node.expression}.length; $indexName++) {');
+    _writeLine(
+        'for (var $indexName = 0; $indexName < ${node.expression}.length; $indexName++) {');
     _indent++;
     _writeLine('final ${node.itemName} = ${node.expression}[$indexName];');
-    
+
     for (final child in node.body) {
       _generateTemplateNode(child, containerVar);
     }
-    
+
     _indent--;
     _writeLine('}');
     _indent--;
@@ -437,14 +521,14 @@ class CodeGenerator {
     final containerVar = _tempVar('await');
     _writeLine("final $containerVar = document.createElement('span');");
     _writeLine('$parent.appendChild($containerVar);');
-    
+
     // Show pending state
     if (node.pending != null) {
       for (final child in node.pending!) {
         _generateTemplateNode(child, containerVar);
       }
     }
-    
+
     // Handle promise resolution
     _writeLine('${node.expression}.then((${node.thenVariable ?? "value"}) {');
     _indent++;
@@ -453,13 +537,13 @@ class CodeGenerator {
     _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
     _indent--;
     _writeLine('}');
-    
+
     if (node.then != null) {
       for (final child in node.then!) {
         _generateTemplateNode(child, containerVar);
       }
     }
-    
+
     _indent--;
     _writeLine('}).catchError((${node.catchVariable ?? "error"}) {');
     _indent++;
@@ -468,13 +552,13 @@ class CodeGenerator {
     _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
     _indent--;
     _writeLine('}');
-    
+
     if (node.catchBlock != null) {
       for (final child in node.catchBlock!) {
         _generateTemplateNode(child, containerVar);
       }
     }
-    
+
     _indent--;
     _writeLine('});');
   }
