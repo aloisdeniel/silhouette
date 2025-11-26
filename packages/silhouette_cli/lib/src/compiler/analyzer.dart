@@ -27,6 +27,7 @@ class Binding {
   final String name;
   final BindingKind kind;
   final String? initializer;
+  final String? type;
   final List<String> references = [];
   final List<String> assignments = [];
   bool reassigned = false;
@@ -36,6 +37,7 @@ class Binding {
     required this.name,
     required this.kind,
     this.initializer,
+    this.type,
   });
 }
 
@@ -138,6 +140,38 @@ class Analyzer {
   void _analyzeLine(String line) {
     // Skip comments
     if (line.startsWith('//') || line.isEmpty) return;
+
+    // Detect property declarations with $prop syntax
+    // Pattern: final <type> name = $prop(default: <value>) or final <type> name = $prop()
+    final propMatch = RegExp(r'(?:final|var|late)\s+([A-Za-z_]\w*(?:<[^>]+>)?)\s+(\w+)\s*=\s*\$prop\s*\((.*?)\)').firstMatch(line);
+    if (propMatch != null) {
+      final type = propMatch.group(1)!;
+      final name = propMatch.group(2)!;
+      final args = propMatch.group(3)!.trim();
+      
+      // Extract default value from named parameter
+      String? defaultValue;
+      if (args.isNotEmpty) {
+        final defaultMatch = RegExp(r'default:\s*(.+)').firstMatch(args);
+        if (defaultMatch != null) {
+          defaultValue = defaultMatch.group(1)!.trim();
+          // Remove trailing comma if present
+          if (defaultValue.endsWith(',')) {
+            defaultValue = defaultValue.substring(0, defaultValue.length - 1).trim();
+          }
+        }
+      }
+      
+      final binding = Binding(
+        name: name,
+        kind: BindingKind.prop,
+        initializer: defaultValue,
+        type: type,
+      );
+      _propBindings.add(binding);
+      _currentScope.declare(name, binding);
+      return;
+    }
 
     // Detect variable declarations with runes
     final varMatch = RegExp(r'(?:var|final|late)\s+(\w+)\s*=\s*(\w+)\((.*)\)').firstMatch(line);

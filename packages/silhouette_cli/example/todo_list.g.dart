@@ -25,13 +25,13 @@ class Component {
     _newTodo = state('');
     _filter = state('all');
     _filteredTodos = derived(() {
-      if (filter == 'active') {
-        return todos.where((t) => !t.completed).toList();
-      } else if (filter == 'completed') {
-        return todos.where((t) => t.completed).toList();
-      }
-      return todos;
-    });
+    if (filter == 'active') {
+      return todos.where((t) => !t.completed).toList();
+    } else if (filter == 'completed') {
+      return todos.where((t) => t.completed).toList();
+    }
+    return todos;
+  });
   }
 
   void addTodo() {
@@ -67,21 +67,17 @@ class Component {
         (_input_4 as HTMLInputElement).value = newTodo.toString();
       }
     });
-    _input_4.addEventListener(
-        'input',
-        (Event event) {
-          if (_input_4.isA<HTMLInputElement>()) {
-            newTodo = (_input_4 as HTMLInputElement).value;
-          }
-        }.toJS);
+    _input_4.addEventListener('input', (Event event) {
+      if (_input_4.isA<HTMLInputElement>()) {
+        newTodo = (_input_4 as HTMLInputElement).value;
+      }
+    }.toJS);
     _input_4.setAttribute("placeholder", "What needs to be done?");
     _div_3.appendChild(_input_4);
     final _button_5 = document.createElement('button');
-    _button_5.addEventListener(
-        'click',
-        (Event event) {
-          addTodo();
-        }.toJS);
+    _button_5.addEventListener('click', (Event event) {
+      addTodo();
+    }.toJS);
     final _text_6 = document.createTextNode("Add");
     _button_5.appendChild(_text_6);
     _div_3.appendChild(_button_5);
@@ -89,29 +85,23 @@ class Component {
     final _div_7 = document.createElement('div');
     _div_7.setAttribute("class", "filters");
     final _button_8 = document.createElement('button');
-    _button_8.addEventListener(
-        'click',
-        (Event event) {
-          filter = 'all';
-        }.toJS);
+    _button_8.addEventListener('click', (Event event) {
+      filter = 'all';
+    }.toJS);
     final _text_9 = document.createTextNode("All");
     _button_8.appendChild(_text_9);
     _div_7.appendChild(_button_8);
     final _button_10 = document.createElement('button');
-    _button_10.addEventListener(
-        'click',
-        (Event event) {
-          filter = 'active';
-        }.toJS);
+    _button_10.addEventListener('click', (Event event) {
+      filter = 'active';
+    }.toJS);
     final _text_11 = document.createTextNode("Active");
     _button_10.appendChild(_text_11);
     _div_7.appendChild(_button_10);
     final _button_12 = document.createElement('button');
-    _button_12.addEventListener(
-        'click',
-        (Event event) {
-          filter = 'completed';
-        }.toJS);
+    _button_12.addEventListener('click', (Event event) {
+      filter = 'completed';
+    }.toJS);
     final _text_13 = document.createTextNode("Completed");
     _button_12.appendChild(_text_13);
     _div_7.appendChild(_button_12);
@@ -134,19 +124,16 @@ class Component {
             final todo = filteredTodos[index];
             final _li_17 = document.createElement('li');
             effect(() {
-              _li_17.setAttribute(
-                  "class", "${todo.completed ? 'completed' : ''}");
+              _li_17.setAttribute("class", "${todo.completed ? 'completed' : ''}");
             });
             final _input_18 = document.createElement('input');
             _input_18.setAttribute("type", "checkbox");
             effect(() {
               _input_18.setAttribute("checked", "${todo.completed}");
             });
-            _input_18.addEventListener(
-                'click',
-                (Event event) {
-                  toggleTodo(index);
-                }.toJS);
+            _input_18.addEventListener('click', (Event event) {
+              toggleTodo(index);
+            }.toJS);
             _li_17.appendChild(_input_18);
             final _span_19 = document.createElement('span');
             final _text_20 = document.createTextNode("");
@@ -156,11 +143,9 @@ class Component {
             });
             _li_17.appendChild(_span_19);
             final _button_21 = document.createElement('button');
-            _button_21.addEventListener(
-                'click',
-                (Event event) {
-                  removeTodo(index);
-                }.toJS);
+            _button_21.addEventListener('click', (Event event) {
+              removeTodo(index);
+            }.toJS);
             final _text_22 = document.createTextNode("Delete");
             _button_21.appendChild(_text_22);
             _li_17.appendChild(_button_21);
@@ -168,7 +153,8 @@ class Component {
           }
         });
         _if_14.appendChild(_ul_15);
-      } else {
+      }
+      else {
         final _p_23 = document.createElement('p');
         final _text_24 = document.createTextNode("No todos yet!");
         _p_23.appendChild(_text_24);

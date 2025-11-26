@@ -1,0 +1,39 @@
+<script>
+  final String username = $prop();
+  final String email = $prop();
+  final int age = $prop(default: 18);
+  final bool isPremium = $prop(default: false);
+  
+  var displayInfo = derived(() => '$username ($email)');
+  var statusText = derived(() => isPremium ? 'Premium User' : 'Free User');
+  
+  effect(() {
+    print('User card rendered for: $username');
+  });
+</script>
+
+<div class="user-card">
+  <h2>{username}</h2>
+  <p>Email: {email}</p>
+  <p>Age: {age}</p>
+  <p>Status: {statusText}</p>
+  
+  {#if isPremium}
+    <div class="premium-badge">⭐ Premium</div>
+  {/if}
+</div>
+
+<style>
+  .user-card {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .premium-badge {
+    background: gold;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+</style>

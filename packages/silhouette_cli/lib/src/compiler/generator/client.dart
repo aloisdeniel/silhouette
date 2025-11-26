@@ -31,6 +31,9 @@ class ClientCodeGenerator {
     _writeLine('class $className {');
     _indent++;
 
+    // Generate property fields
+    _generatePropertyFields();
+
     // Generate state fields
     _generateStateFields();
 
@@ -57,6 +60,17 @@ class ClientCodeGenerator {
     _writeLine('}');
 
     return _output.toString();
+  }
+
+  /// Generate property fields
+  void _generatePropertyFields() {
+    for (final binding in analysis.propBindings) {
+      final type = binding.type ?? 'dynamic';
+      _writeLine('final $type ${binding.name};');
+    }
+    if (analysis.propBindings.isNotEmpty) {
+      _writeLine();
+    }
   }
 
   /// Generate state fields
@@ -87,7 +101,27 @@ class ClientCodeGenerator {
 
   /// Generate constructor
   void _generateConstructor(String className) {
-    _writeLine('$className() {');
+    // Generate constructor with named parameters for properties
+    final hasProps = analysis.propBindings.isNotEmpty;
+
+    if (hasProps) {
+      _write('$className({');
+      for (var i = 0; i < analysis.propBindings.length; i++) {
+        final binding = analysis.propBindings[i];
+        if (binding.initializer != null) {
+          _write('this.${binding.name} = ${binding.initializer}');
+        } else {
+          _write('required this.${binding.name}');
+        }
+        if (i < analysis.propBindings.length - 1) {
+          _write(', ');
+        }
+      }
+      _write('}) {');
+      _output.writeln(); // Add newline after closing brace
+    } else {
+      _writeLine('$className() {');
+    }
     _indent++;
 
     // Initialize state and derived values from script
@@ -181,6 +215,9 @@ class ClientCodeGenerator {
       final varName = match.group(1)!;
       _writeLine('_$varName = props();');
     }
+
+    // Note: $prop() declarations are not initialized here as they are
+    // handled as constructor parameters
   }
 
   /// Generate script effects
@@ -590,6 +627,15 @@ class ClientCodeGenerator {
       _output.writeln();
     } else {
       _output.writeln('${'  ' * _indent}$line');
+    }
+  }
+
+  /// Write text without a newline
+  void _write(String text) {
+    if (_output.isEmpty || _output.toString().endsWith('\n')) {
+      _output.write('${'  ' * _indent}$text');
+    } else {
+      _output.write(text);
     }
   }
 }

@@ -1,0 +1,62 @@
+<script>
+  // Required properties
+  final String title = $prop();
+  
+  // Optional properties with defaults
+  final String subtitle = $prop(default: 'No subtitle');
+  final int maxItems = $prop(default: 10);
+  final bool showHeader = $prop(default: true);
+  
+  // Derived values using props
+  var headerText = derived(() => showHeader ? title : '');
+  var itemLimit = derived(() => 'Showing up to $maxItems items');
+  
+  // State that can work with props
+  var currentCount = state(0);
+  var isOverLimit = derived(() => currentCount > maxItems);
+  
+  void incrementCount() {
+    currentCount = currentCount + 1;
+  }
+  
+  effect(() {
+    print('Component rendered with title: $title');
+  });
+</script>
+
+<div class="props-demo">
+  {#if showHeader}
+    <div class="header">
+      <h1>{title}</h1>
+      <h2>{subtitle}</h2>
+    </div>
+  {/if}
+  
+  <div class="content">
+    <p>{itemLimit}</p>
+    <p>Current count: {currentCount}</p>
+    
+    {#if isOverLimit}
+      <p class="warning">Warning: Over the limit!</p>
+    {/if}
+    
+    <button on:click={incrementCount}>Add Item</button>
+  </div>
+</div>
+
+<style>
+  .props-demo {
+    padding: 20px;
+    max-width: 600px;
+  }
+  
+  .header {
+    border-bottom: 2px solid #333;
+    margin-bottom: 20px;
+  }
+  
+  .warning {
+    color: red;
+    font-weight: bold;
+  }
+</style>

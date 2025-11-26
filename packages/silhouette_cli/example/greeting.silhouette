@@ -1,0 +1,24 @@
+<script>
+  final String name = $prop(default: 'World');
+  final int count = $prop(default: 0);
+  
+  var greeting = derived(() => 'Hello, $name!');
+  var displayCount = derived(() => 'Count: $count');
+  
+  effect(() {
+    print('Greeting changed: $greeting');
+  });
+</script>
+
+<div>
+  <h1>{greeting}</h1>
+  <p>{displayCount}</p>
+  <p>Name is {name}</p>
+</div>
+
+<style>
+  div {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+</style>
