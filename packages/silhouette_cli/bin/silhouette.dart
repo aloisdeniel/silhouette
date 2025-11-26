@@ -81,10 +81,14 @@ Future<void> _compileFile(
   print('Compiling $inputPath...');
 
   final source = await file.readAsString();
+
+  // Derive component name from filename if not provided
+  final derivedName = componentName ?? _deriveComponentName(inputPath);
+
   final compiler = Compiler(
     options: CompileOptions(
       debug: debug,
-      componentName: componentName,
+      componentName: derivedName,
     ),
   );
 
@@ -141,5 +145,20 @@ Future<void> _watchAndCompile(
 String _getDefaultOutputPath(String inputPath) {
   final dir = path.dirname(inputPath);
   final basename = path.basenameWithoutExtension(inputPath);
-  return path.join(dir, '$basename.g.dart');
+  return path.join(dir, '$basename.client.g.dart');
+}
+
+String _deriveComponentName(String inputPath) {
+  // Get basename without extension (e.g., "my_button" from "my_button.silhouette")
+  final basename = path.basenameWithoutExtension(inputPath);
+
+  // Convert from snake_case or kebab-case to PascalCase
+  // E.g., "my_button" -> "MyButton", "user-card" -> "UserCard"
+  final words = basename.split(RegExp(r'[_-]'));
+  final pascalCase = words.map((word) {
+    if (word.isEmpty) return '';
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join();
+
+  return pascalCase;
 }

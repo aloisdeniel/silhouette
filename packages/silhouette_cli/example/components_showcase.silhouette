@@ -1,0 +1,96 @@
+<script>
+  import 'card.g.dart';
+  import 'button.g.dart';
+  
+  // Component state
+  var counter = state(0);
+  var selectedCard = state(0);
+  
+  // Derived values
+  var counterText = derived(() => 'Counter: $counter');
+  var hasClicked = derived(() => counter > 0);
+  
+  // Methods
+  void handleIncrement() {
+    counter = counter + 1;
+  }
+  
+  void selectCard(int index) {
+    selectedCard = index;
+  }
+  
+  effect(() {
+    print('Showcase: counter=$counter, selectedCard=$selectedCard');
+  });
+</script>
+
+<div class="showcase">
+  <h1>Silhouette Components Showcase</h1>
+  
+  <section>
+    <h2>Component Composition</h2>
+    <p>Demonstrating imported components with props</p>
+    
+    <Card 
+      title="Welcome Card"
+      description="This card is a reusable component"
+      highlighted={counter > 5}
+    />
+  </section>
+  
+  <section>
+    <h2>Dynamic Components in Loops</h2>
+    
+    {#each ['Feature 1', 'Feature 2', 'Feature 3'] as feature, i}
+      <Card 
+        title={feature}
+        description="Card number {i + 1}"
+        highlighted={i == selectedCard}
+      />
+    {/each}
+  </section>
+  
+  <section>
+    <h2>Interactive Components</h2>
+    <p>{counterText}</p>
+    
+    {#if hasClicked}
+      <Card 
+        title="You've clicked!"
+        description="The counter is now at {counter}"
+        highlighted={true}
+      />
+    {/if}
+  </section>
+</div>
+
+<style>
+  .showcase {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .showcase h1 {
+    color: #2c3e50;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  
+  .showcase section {
+    margin-bottom: 40px;
+  }
+  
+  .showcase h2 {
+    color: #34495e;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ecf0f1;
+  }
+  
+  .showcase p {
+    color: #7f8c8d;
+    margin-bottom: 20px;
+  }
+</style>

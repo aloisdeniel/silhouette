@@ -64,7 +64,11 @@ class Compiler {
       }
 
       // Phase 3: Generate
-      final generator = ClientCodeGenerator(ast, analysis);
+      final generator = ClientCodeGenerator(
+        ast,
+        analysis,
+        componentName: options.componentName ?? 'Component',
+      );
       final code = generator.generate();
 
       return CompileResult(

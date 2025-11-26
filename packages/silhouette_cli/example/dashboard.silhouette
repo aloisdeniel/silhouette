@@ -1,0 +1,65 @@
+<script>
+  import 'card.g.dart';
+  
+  var items = state(['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow']);
+  var selectedIndex = state(-1);
+  
+  effect(() {
+    print('Dashboard has ${items.length} items');
+  });
+</script>
+
+<div class="dashboard">
+  <h1>Project Dashboard</h1>
+  
+  <div class="summary">
+    <Card 
+      title="Welcome" 
+      description="This is a demo of Silhouette components with imports"
+      highlighted={true}
+    />
+  </div>
+  
+  <div class="tasks">
+    <h2>Tasks ({items.length})</h2>
+    
+    {#each items as task, i}
+      <Card 
+        title="Task #{i + 1}" 
+        description={task}
+        highlighted={i == selectedIndex}
+      />
+    {/each}
+  </div>
+  
+  {#if items.length == 0}
+    <Card 
+      title="No Tasks" 
+      description="All done! Great job!"
+      highlighted={true}
+    />
+  {/if}
+</div>
+
+<style>
+  .dashboard {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .dashboard h1 {
+    color: #333;
+    margin-bottom: 30px;
+  }
+  
+  .summary {
+    margin-bottom: 30px;
+  }
+  
+  .tasks h2 {
+    color: #666;
+    margin-bottom: 15px;
+  }
+</style>

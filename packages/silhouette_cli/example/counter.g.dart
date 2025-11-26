@@ -2,7 +2,7 @@ import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
 
-class Component {
+class Counter {
   late final State<dynamic> _count;
   get count => _count.value;
   set count(value) => _count.value = value;
@@ -12,7 +12,7 @@ class Component {
 
   late final HTMLElement root;
 
-  Component() {
+  Counter() {
     _count = state(0);
     _double = derived(() => count * 2);
     effect(() {
@@ -96,3 +96,4 @@ class Component {
     root.remove();
   }
 }
+

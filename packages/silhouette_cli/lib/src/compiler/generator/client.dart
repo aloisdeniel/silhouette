@@ -9,25 +9,35 @@ import '../analyzer.dart';
 class ClientCodeGenerator {
   final RootNode ast;
   final AnalysisResult analysis;
+  final String componentName;
   final StringBuffer _output = StringBuffer();
   int _indent = 0;
   int _tempVarCounter = 0;
   final Map<String, String> _elementVars = {};
 
-  ClientCodeGenerator(this.ast, this.analysis);
+  ClientCodeGenerator(this.ast, this.analysis, {this.componentName = 'Component'});
 
   /// Generate Dart code
   String generate() {
     _output.clear();
 
-    // Generate imports
+    // Generate standard imports
     _writeLine("import 'dart:js_interop';");
     _writeLine("import 'package:web/web.dart';");
     _writeLine("import 'package:silhouette_cli/src/runtime/runtime.dart';");
+    
+    // Generate user imports
+    for (final import in analysis.imports) {
+      if (import.alias != null) {
+        _writeLine("import '${import.uri}' as ${import.alias};");
+      } else {
+        _writeLine("import '${import.uri}';");
+      }
+    }
     _writeLine();
 
     // Generate class
-    final className = 'Component';
+    final className = componentName;
     _writeLine('class $className {');
     _indent++;
 
@@ -58,7 +68,12 @@ class ClientCodeGenerator {
 
     _indent--;
     _writeLine('}');
-
+    _writeLine();
+    
+    // Add a type alias using the capitalized file name for easier imports
+    // This will be set by the compiler when it knows the source file name
+    // For now, we'll just use Component
+    
     return _output.toString();
   }
 
@@ -352,6 +367,15 @@ class ClientCodeGenerator {
 
   /// Generate element
   void _generateElement(ElementNode node, String parent) {
+    if (node.isComponent) {
+      _generateComponent(node, parent);
+    } else {
+      _generateHtmlElement(node, parent);
+    }
+  }
+
+  /// Generate HTML element
+  void _generateHtmlElement(ElementNode node, String parent) {
     final elemVar = _tempVar(node.name);
     _elementVars[node.name] = elemVar;
 
@@ -368,6 +392,68 @@ class ClientCodeGenerator {
     }
 
     _writeLine('$parent.appendChild($elemVar);');
+  }
+
+  /// Generate component
+  void _generateComponent(ElementNode node, String parent) {
+    final componentVar = _tempVar(node.name.toLowerCase());
+    final componentClass = _capitalize(node.name);
+    
+    // Build props map from attributes
+    final propParams = <String>[];
+    for (final attr in node.attributes) {
+      if (attr is RegularAttribute) {
+        // Handle prop passing
+        if (attr.value.isEmpty) {
+          // Boolean prop (just presence)
+          propParams.add('${attr.name}: true');
+        } else if (attr.value.length == 1 && attr.value.first is ExpressionAttributeValue) {
+          // Expression value
+          final expr = (attr.value.first as ExpressionAttributeValue).expression;
+          propParams.add('${attr.name}: $expr');
+        } else if (attr.value.every((v) => v is TextAttributeValue)) {
+          // Pure static text
+          final text = attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
+          propParams.add('${attr.name}: "${_escapeString(text)}"');
+        } else {
+          // Mixed text and expressions - use string interpolation
+          final parts = <String>[];
+          for (final value in attr.value) {
+            if (value is TextAttributeValue) {
+              parts.add(_escapeString(value.text));
+            } else if (value is ExpressionAttributeValue) {
+              parts.add('\${${value.expression}}');
+            }
+          }
+          propParams.add('${attr.name}: "${parts.join()}"');
+        }
+      } else if (attr is EventAttribute) {
+        // Events on components - we'll ignore for now as they need special handling
+        // TODO: Support component events
+        continue;
+      }
+    }
+    
+    // Create component instance
+    if (propParams.isEmpty) {
+      _writeLine('final $componentVar = $componentClass();');
+    } else {
+      _writeLine('final $componentVar = $componentClass(');
+      _indent++;
+      for (var i = 0; i < propParams.length; i++) {
+        final param = propParams[i];
+        if (i < propParams.length - 1) {
+          _writeLine('$param,');
+        } else {
+          _writeLine(param);
+        }
+      }
+      _indent--;
+      _writeLine(');');
+    }
+    
+    // Mount component (cast parent to HTMLElement if needed)
+    _writeLine('$componentVar.mount($parent as HTMLElement);');
   }
 
   /// Generate attribute

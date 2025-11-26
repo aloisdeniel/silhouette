@@ -1,0 +1,42 @@
+<script>
+  final String title = $prop(default: 'Card Title');
+  final String description = $prop(default: 'Card description goes here');
+  final bool highlighted = $prop(default: false);
+  
+  var cardClass = derived(() => highlighted ? 'card highlighted' : 'card');
+  
+  effect(() {
+    print('Card rendered: $title');
+  });
+</script>
+
+<div class="{cardClass}">
+  <h3>{title}</h3>
+  <p>{description}</p>
+</div>
+
+<style>
+  .card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px 0;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .card.highlighted {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+  }
+  
+  .card h3 {
+    margin-top: 0;
+    color: #333;
+  }
+  
+  .card p {
+    color: #666;
+    margin-bottom: 0;
+  }
+</style>

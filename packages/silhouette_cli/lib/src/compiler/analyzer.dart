@@ -69,6 +69,19 @@ class Scope {
   }
 }
 
+/// Import declaration
+class ImportDeclaration {
+  final String uri;
+  final String? alias;
+  final List<String> symbols;
+
+  ImportDeclaration({
+    required this.uri,
+    this.alias,
+    this.symbols = const [],
+  });
+}
+
 /// Analysis result
 class AnalysisResult {
   final Scope rootScope;
@@ -76,6 +89,7 @@ class AnalysisResult {
   final List<Binding> derivedBindings;
   final List<Binding> propBindings;
   final Set<String> dependencies;
+  final List<ImportDeclaration> imports;
 
   AnalysisResult({
     required this.rootScope,
@@ -83,6 +97,7 @@ class AnalysisResult {
     required this.derivedBindings,
     required this.propBindings,
     required this.dependencies,
+    required this.imports,
   });
 }
 
@@ -94,6 +109,7 @@ class Analyzer {
   final List<Binding> _derivedBindings = [];
   final List<Binding> _propBindings = [];
   final Set<String> _dependencies = {};
+  final List<ImportDeclaration> _imports = [];
 
   Analyzer(this.ast);
 
@@ -118,6 +134,7 @@ class Analyzer {
       derivedBindings: _derivedBindings,
       propBindings: _propBindings,
       dependencies: _dependencies,
+      imports: _imports,
     );
   }
 
@@ -140,6 +157,39 @@ class Analyzer {
   void _analyzeLine(String line) {
     // Skip comments
     if (line.startsWith('//') || line.isEmpty) return;
+
+    // Detect import statements
+    // Pattern: import 'path/to/file.g.dart' as Alias;
+    // Or: import 'path/to/file.g.dart';
+    final importMatch = RegExp(r'''import\s+['"]([^'"]+)['"]\s*(?:as\s+(\w+))?\s*;''').firstMatch(line);
+    if (importMatch != null) {
+      final uri = importMatch.group(1)!;
+      final alias = importMatch.group(2);
+      
+      _imports.add(ImportDeclaration(
+        uri: uri,
+        alias: alias,
+      ));
+      
+      // If there's an alias, add it to scope so we can reference it
+      if (alias != null) {
+        _currentScope.declare(alias, Binding(
+          name: alias,
+          kind: BindingKind.normal,
+        ));
+      }
+      
+      // Extract component name from path (e.g., 'button.g.dart' -> 'Button')
+      final fileName = uri.split('/').last;
+      if (fileName.endsWith('.g.dart')) {
+        final componentName = _capitalize(fileName.replaceAll('.g.dart', ''));
+        _currentScope.declare(componentName, Binding(
+          name: componentName,
+          kind: BindingKind.normal,
+        ));
+      }
+      return;
+    }
 
     // Detect property declarations with $prop syntax
     // Pattern: final <type> name = $prop(default: <value>) or final <type> name = $prop()
@@ -400,5 +450,11 @@ class Analyzer {
       'Object', 'List', 'Map', 'Set', 'state', 'derived', 'effect', 'props',
     };
     return keywords.contains(word);
+  }
+
+  /// Capitalize first letter
+  String _capitalize(String str) {
+    if (str.isEmpty) return str;
+    return str[0].toUpperCase() + str.substring(1);
   }
 }
