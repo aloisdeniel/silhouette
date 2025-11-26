@@ -354,12 +354,13 @@ batch(() {
 | Aspect | Svelte | Silhouette |
 |--------|--------|-----------|
 | Language | JavaScript/TypeScript | Dart |
-| Output | Vanilla JS + DOM | Dart + dart:html |
+| Output | Vanilla JS + DOM | Dart + package:web |
 | Parsing | Custom parser + Acorn | Custom recursive descent |
 | Reactivity | Compiler transforms | Runtime signals |
 | Components | Import/export | Single file (for now) |
 | SSR | Yes | No (yet) |
 | Animations | Yes | No (yet) |
+| Wasm Support | Via separate tooling | Native via package:web |
 
 ## Performance Considerations
 

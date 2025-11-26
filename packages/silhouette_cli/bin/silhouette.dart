@@ -1,8 +1,8 @@
 #!/usr/bin/env dart
 
 /// Silhouette CLI tool
-/// 
-/// Compiles .svelte files into Dart components
+///
+/// Compiles .silhouette files into Dart components
 library;
 
 import 'dart:io';
@@ -14,14 +14,11 @@ void main(List<String> arguments) async {
   final parser = ArgParser()
     ..addFlag('help',
         abbr: 'h', negatable: false, help: 'Show usage information')
-    ..addFlag('debug',
-        abbr: 'd', negatable: false, help: 'Generate debug code')
+    ..addFlag('debug', abbr: 'd', negatable: false, help: 'Generate debug code')
     ..addFlag('watch',
         abbr: 'w', negatable: false, help: 'Watch for file changes')
-    ..addOption('output',
-        abbr: 'o', help: 'Output file or directory')
-    ..addOption('name',
-        abbr: 'n', help: 'Component class name');
+    ..addOption('output', abbr: 'o', help: 'Output file or directory')
+    ..addOption('name', abbr: 'n', help: 'Component class name');
 
   try {
     final results = parser.parse(arguments);
@@ -75,14 +72,14 @@ Future<void> _compileFile(
   bool debug,
 ) async {
   final file = File(inputPath);
-  
+
   if (!await file.exists()) {
     print('Error: File not found: $inputPath');
     exit(1);
   }
 
   print('Compiling $inputPath...');
-  
+
   final source = await file.readAsString();
   final compiler = Compiler(
     options: CompileOptions(
@@ -90,18 +87,18 @@ Future<void> _compileFile(
       componentName: componentName,
     ),
   );
-  
+
   final result = compiler.compile(source);
 
   // Determine output path
   final output = outputPath ?? _getDefaultOutputPath(inputPath);
-  
+
   // Write output
   final outputFile = File(output);
   await outputFile.writeAsString(result.code);
-  
+
   print('✓ Compiled to $output');
-  
+
   // Print warnings
   if (result.warnings.isNotEmpty) {
     print('\nWarnings:');
@@ -129,9 +126,9 @@ Future<void> _watchAndCompile(
 
   while (true) {
     await Future.delayed(Duration(milliseconds: 500));
-    
+
     if (!await file.exists()) continue;
-    
+
     final modified = await file.lastModified();
     if (modified.isAfter(lastModified!)) {
       lastModified = modified;

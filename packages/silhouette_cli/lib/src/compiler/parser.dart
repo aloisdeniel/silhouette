@@ -41,7 +41,7 @@ class Parser {
           final isModule = _parseScriptTag();
           final content = _readUntil('</script>');
           final end = _index;
-          
+
           final scriptNode = ScriptNode(
             content: content,
             isModule: isModule,
@@ -99,7 +99,7 @@ class Parser {
   /// Parse script tag attributes and return if it's a module script
   bool _parseScriptTag() {
     _skipWhitespace();
-    
+
     bool isModule = false;
     while (_peek() != '>' && !_isAtEnd()) {
       if (_match('context')) {
@@ -119,7 +119,7 @@ class Parser {
         _advance();
       }
     }
-    
+
     if (_peek() == '>') _advance();
     return isModule;
   }
@@ -127,7 +127,7 @@ class Parser {
   /// Parse style tag attributes and return if it's scoped
   bool _parseStyleTag() {
     _skipWhitespace();
-    
+
     bool scoped = false;
     while (_peek() != '>' && !_isAtEnd()) {
       if (_match('scoped')) {
@@ -135,7 +135,7 @@ class Parser {
       }
       _advance();
     }
-    
+
     if (_peek() == '>') _advance();
     return scoped;
   }
@@ -158,7 +158,7 @@ class Parser {
 
       _skipWhitespace();
       if (_isAtEnd()) break;
-      
+
       if (untilAny != null) {
         var shouldBreak = false;
         for (final until in untilAny) {
@@ -181,8 +181,6 @@ class Parser {
 
   /// Parse a single template node
   TemplateNode? _parseTemplateNode() {
-    final start = _index;
-
     if (_peek() == '{') {
       return _parseTag();
     } else if (_peek() == '<') {
@@ -212,7 +210,7 @@ class Parser {
       }
     } else if (_peek() == '#') {
       _advance(); // consume #
-      
+
       if (_match('if')) {
         return _parseIfBlock(start);
       } else if (_match('each')) {
@@ -237,7 +235,7 @@ class Parser {
     final condition = _readUntil('}').trim();
 
     final consequent = _parseFragment(['{:else}', '{/if}']);
-    
+
     List<TemplateNode>? alternate;
     if (_peek(7) == '{:else}') {
       _advance(7); // consume {:else}
@@ -258,7 +256,7 @@ class Parser {
   EachBlockNode _parseEachBlock(int start) {
     _skipWhitespace();
     final eachExpression = _readUntil('}').trim();
-    
+
     // Parse "items as item, index (key)"
     final parts = eachExpression.split(' as ');
     if (parts.length != 2) {
@@ -267,7 +265,7 @@ class Parser {
 
     final expression = parts[0].trim();
     var rest = parts[1].trim();
-    
+
     String? keyExpression;
     if (rest.contains('(')) {
       final keyStart = rest.indexOf('(');
@@ -284,7 +282,7 @@ class Parser {
     final indexName = itemParts.length > 1 ? itemParts[1] : null;
 
     final body = _parseFragment(['{:else}', '{/each}']);
-    
+
     List<TemplateNode>? fallback;
     if (_peek(7) == '{:else}') {
       _advance(7);
@@ -317,7 +315,7 @@ class Parser {
 
     // Parse pending block
     pending = _parseFragment(['{:then', '{:catch', '{/await}']);
-    
+
     if (_peek(6) == '{:then') {
       _advance(6);
       _skipWhitespace();
@@ -480,11 +478,11 @@ class Parser {
     // Regular attribute
     _skipWhitespace();
     final values = <AttributeValue>[];
-    
+
     if (_peek() == '=') {
       _advance();
       _skipWhitespace();
-      
+
       final quote = _peek();
       if (quote == '"' || quote == "'") {
         _advance();

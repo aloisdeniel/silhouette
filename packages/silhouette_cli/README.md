@@ -10,7 +10,7 @@ A Svelte-like compiler for Dart that compiles templates into reactive Dart compo
 - **Template syntax** - Support for `{#if}`, `{#each}`, `{#await}`, and more
 - **Event handlers** - `on:click`, `on:input`, etc.
 - **Two-way binding** - `bind:value` for form inputs
-- **Compiles to dart:html** - Generated code uses standard Dart HTML APIs
+- **Compiles to package:web** - Generated code uses modern web APIs via package:web (Wasm-compatible)
 
 ## Installation
 
@@ -268,7 +268,8 @@ While inspired by Svelte, Silhouette has some differences:
 
 - Uses Dart instead of JavaScript/TypeScript
 - Runes are required (not optional like Svelte 5)
-- Compiles to dart:html instead of vanilla DOM APIs
+- Compiles to package:web instead of vanilla DOM APIs
+- Wasm-compatible through package:web
 - No component composition yet (single file components only)
 - No stores (use state directly)
 - No transitions/animations yet

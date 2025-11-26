@@ -1,6 +1,6 @@
 /// Code generator for Silhouette components
 ///
-/// Generates Dart code using dart:html APIs
+/// Generates Dart code using package:web APIs
 library;
 
 import 'ast.dart';
@@ -21,7 +21,8 @@ class CodeGenerator {
     _output.clear();
     
     // Generate imports
-    _writeLine("import 'dart:html';");
+    _writeLine("import 'dart:js_interop';");
+    _writeLine("import 'package:web/web.dart';");
     _writeLine("import 'package:silhouette_cli/src/runtime/runtime.dart';");
     _writeLine();
 
@@ -37,7 +38,7 @@ class CodeGenerator {
     _generateDerivedFields();
 
     // Generate element field
-    _writeLine('late final Element root;');
+    _writeLine('late final HTMLElement root;');
     _writeLine();
 
     // Generate constructor
@@ -148,17 +149,17 @@ class CodeGenerator {
 
   /// Generate mount method
   void _generateMountMethod() {
-    _writeLine('void mount(Element target) {');
+    _writeLine('void mount(HTMLElement target) {');
     _indent++;
 
-    _writeLine('root = Element.tag("div");');
+    _writeLine("root = document.createElement('div') as HTMLElement;");
     _writeLine();
 
     // Generate template
     _generateFragment(ast.fragment, 'root');
 
     _writeLine();
-    _writeLine('target.append(root);');
+    _writeLine('target.appendChild(root);');
 
     _indent--;
     _writeLine('}');
@@ -208,20 +209,20 @@ class CodeGenerator {
     if (node.data.trim().isEmpty) return;
     
     final textVar = _tempVar('text');
-    _writeLine('final $textVar = Text("${_escapeString(node.data)}");');
-    _writeLine('$parent.append($textVar);');
+    _writeLine('final $textVar = document.createTextNode("${_escapeString(node.data)}");');
+    _writeLine('$parent.appendChild($textVar);');
   }
 
   /// Generate expression tag
   void _generateExpressionTag(ExpressionTagNode node, String parent) {
     final textVar = _tempVar('text');
-    _writeLine('final $textVar = Text("");');
-    _writeLine('$parent.append($textVar);');
+    _writeLine('final $textVar = document.createTextNode("");');
+    _writeLine('$parent.appendChild($textVar);');
     
     // Create effect to update text
     _writeLine('effect(() {');
     _indent++;
-    _writeLine('$textVar.text = "\${${node.expression}}";');
+    _writeLine('$textVar.textContent = "\${${node.expression}}";');
     _indent--;
     _writeLine('});');
   }
@@ -229,13 +230,13 @@ class CodeGenerator {
   /// Generate HTML tag
   void _generateHtmlTag(HtmlTagNode node, String parent) {
     final spanVar = _tempVar('html');
-    _writeLine('final $spanVar = Element.tag("span");');
-    _writeLine('$parent.append($spanVar);');
+    _writeLine("final $spanVar = document.createElement('span');");
+    _writeLine('$parent.appendChild($spanVar);');
     
     // Create effect to update innerHTML
     _writeLine('effect(() {');
     _indent++;
-    _writeLine('$spanVar.innerHtml = ${node.expression};');
+    _writeLine('$spanVar.innerHTML = ${node.expression};');
     _indent--;
     _writeLine('});');
   }
@@ -245,7 +246,7 @@ class CodeGenerator {
     final elemVar = _tempVar(node.name);
     _elementVars[node.name] = elemVar;
     
-    _writeLine('final $elemVar = Element.tag("${node.name}");');
+    _writeLine("final $elemVar = document.createElement('${node.name}');");
 
     // Generate attributes
     for (final attr in node.attributes) {
@@ -257,7 +258,7 @@ class CodeGenerator {
       _generateTemplateNode(child, elemVar);
     }
 
-    _writeLine('$parent.append($elemVar);');
+    _writeLine('$parent.appendChild($elemVar);');
   }
 
   /// Generate attribute
@@ -319,7 +320,7 @@ class CodeGenerator {
   /// Generate event attribute
   void _generateEventAttribute(EventAttribute attr, String element) {
     if (attr.handler != null) {
-      _writeLine('$element.on${_capitalize(attr.event)}.listen((event) {');
+      _writeLine("$element.addEventListener('${attr.event}', (Event event) {");
       _indent++;
       // Check if handler is just a function name, add () to call it
       final handler = attr.handler!.trim();
@@ -331,7 +332,7 @@ class CodeGenerator {
         _writeLine('$handler;');
       }
       _indent--;
-      _writeLine('});');
+      _writeLine('}.toJS);');
     }
   }
 
@@ -342,36 +343,40 @@ class CodeGenerator {
       // Update element when state changes
       _writeLine('effect(() {');
       _indent++;
-      _writeLine('if ($element is InputElement) {');
+      _writeLine('if ($element.isA<HTMLInputElement>()) {');
       _indent++;
-      _writeLine('$element.value = ${attr.value}.toString();');
+      _writeLine('($element as HTMLInputElement).value = ${attr.value}.toString();');
       _indent--;
       _writeLine('}');
       _indent--;
       _writeLine('});');
 
       // Update state when element changes
-      _writeLine('$element.onInput.listen((event) {');
+      _writeLine("$element.addEventListener('input', (Event event) {");
       _indent++;
-      _writeLine('if ($element is InputElement) {');
+      _writeLine('if ($element.isA<HTMLInputElement>()) {');
       _indent++;
-      _writeLine('${attr.value} = $element.value;');
+      _writeLine('${attr.value} = ($element as HTMLInputElement).value;');
       _indent--;
       _writeLine('}');
       _indent--;
-      _writeLine('});');
+      _writeLine('}.toJS);');
     }
   }
 
   /// Generate if block
   void _generateIfBlock(IfBlockNode node, String parent) {
     final containerVar = _tempVar('if');
-    _writeLine('final $containerVar = Element.tag("span");');
-    _writeLine('$parent.append($containerVar);');
+    _writeLine("final $containerVar = document.createElement('span');");
+    _writeLine('$parent.appendChild($containerVar);');
     
     _writeLine('effect(() {');
     _indent++;
-    _writeLine('$containerVar.children.clear();');
+    _writeLine('while ($containerVar.firstChild != null) {');
+    _indent++;
+    _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
+    _indent--;
+    _writeLine('}');
     _writeLine('if (${node.condition}) {');
     _indent++;
     
@@ -401,12 +406,16 @@ class CodeGenerator {
   /// Generate each block
   void _generateEachBlock(EachBlockNode node, String parent) {
     final containerVar = _tempVar('each');
-    _writeLine('final $containerVar = Element.tag("span");');
-    _writeLine('$parent.append($containerVar);');
+    _writeLine("final $containerVar = document.createElement('span');");
+    _writeLine('$parent.appendChild($containerVar);');
     
     _writeLine('effect(() {');
     _indent++;
-    _writeLine('$containerVar.children.clear();');
+    _writeLine('while ($containerVar.firstChild != null) {');
+    _indent++;
+    _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
+    _indent--;
+    _writeLine('}');
     
     final indexName = node.indexName ?? 'index';
     _writeLine('for (var $indexName = 0; $indexName < ${node.expression}.length; $indexName++) {');
@@ -426,8 +435,8 @@ class CodeGenerator {
   /// Generate await block
   void _generateAwaitBlock(AwaitBlockNode node, String parent) {
     final containerVar = _tempVar('await');
-    _writeLine('final $containerVar = Element.tag("span");');
-    _writeLine('$parent.append($containerVar);');
+    _writeLine("final $containerVar = document.createElement('span');");
+    _writeLine('$parent.appendChild($containerVar);');
     
     // Show pending state
     if (node.pending != null) {
@@ -439,7 +448,11 @@ class CodeGenerator {
     // Handle promise resolution
     _writeLine('${node.expression}.then((${node.thenVariable ?? "value"}) {');
     _indent++;
-    _writeLine('$containerVar.children.clear();');
+    _writeLine('while ($containerVar.firstChild != null) {');
+    _indent++;
+    _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
+    _indent--;
+    _writeLine('}');
     
     if (node.then != null) {
       for (final child in node.then!) {
@@ -450,7 +463,11 @@ class CodeGenerator {
     _indent--;
     _writeLine('}).catchError((${node.catchVariable ?? "error"}) {');
     _indent++;
-    _writeLine('$containerVar.children.clear();');
+    _writeLine('while ($containerVar.firstChild != null) {');
+    _indent++;
+    _writeLine('$containerVar.removeChild($containerVar.firstChild!);');
+    _indent--;
+    _writeLine('}');
     
     if (node.catchBlock != null) {
       for (final child in node.catchBlock!) {
