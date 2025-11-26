@@ -223,8 +223,8 @@ class Analyzer {
       return;
     }
 
-    // Detect variable declarations with runes
-    final varMatch = RegExp(r'(?:var|final|late)\s+(\w+)\s*=\s*(\w+)\((.*)\)').firstMatch(line);
+    // Detect variable declarations with runes (only $state/$derived/$effect)
+    final varMatch = RegExp(r'(?:var|final|late)\s+(\w+)\s*=\s*(\$\w+)\((.*)\)').firstMatch(line);
     if (varMatch != null) {
       final name = varMatch.group(1)!;
       final runeName = varMatch.group(2)!;
@@ -245,8 +245,8 @@ class Analyzer {
       return;
     }
 
-    // Detect standalone effect calls
-    if (line.startsWith('effect(')) {
+    // Detect standalone effect calls (only $effect)
+    if (line.startsWith(r'$effect(')) {
       // Effects don't create bindings, they just run
       return;
     }
@@ -279,9 +279,9 @@ class Analyzer {
   /// Detect rune type from function name
   RuneType? _detectRuneType(String name) {
     return switch (name) {
-      'state' => RuneType.state,
-      'derived' => RuneType.derived,
-      'effect' => RuneType.effect,
+      r'$state' => RuneType.state,
+      r'$derived' => RuneType.derived,
+      r'$effect' => RuneType.effect,
       'props' => RuneType.props,
       _ => null,
     };
@@ -447,7 +447,8 @@ class Analyzer {
       'enum', 'import', 'export', 'library', 'part', 'as', 'show', 'hide',
       'async', 'await', 'yield', 'true', 'false', 'null', 'this', 'super',
       'new', 'void', 'int', 'double', 'String', 'bool', 'num', 'dynamic',
-      'Object', 'List', 'Map', 'Set', 'state', 'derived', 'effect', 'props',
+      'Object', 'List', 'Map', 'Set', 'props',
+      r'$state', r'$derived', r'$effect',
     };
     return keywords.contains(word);
   }

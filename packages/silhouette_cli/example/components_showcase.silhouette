@@ -3,12 +3,12 @@
   import 'button.client.g.dart';
   
   // Component state
-  var counter = state(0);
-  var selectedCard = state(0);
+  var counter = $state(0);
+  var selectedCard = $state(0);
   
   // Derived values
-  var counterText = derived(() => 'Counter: $counter');
-  var hasClicked = derived(() => counter > 0);
+  var counterText = $derived(() => 'Counter: $counter');
+  var hasClicked = $derived(() => counter > 0);
   
   // Methods
   void handleIncrement() {
@@ -19,7 +19,7 @@
     selectedCard = index;
   }
   
-  effect(() {
+  $effect(() {
     print('Showcase: counter=$counter, selectedCard=$selectedCard');
   });
 </script>

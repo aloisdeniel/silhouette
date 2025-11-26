@@ -19,9 +19,6 @@ class UserCard {
   UserCard({required this.username, required this.email, this.age = 18, this.isPremium = false}) {
     _displayInfo = derived(() => '$username ($email)');
     _statusText = derived(() => isPremium ? 'Premium User' : 'Free User');
-    effect(() {
-    print('User card rendered for: $username');
-  });
   }
 
   void mount(HTMLElement target) {

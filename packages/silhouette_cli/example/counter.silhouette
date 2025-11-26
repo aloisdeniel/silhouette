@@ -1,8 +1,8 @@
 <script>
-  var count = state(0);
-  var double = derived(() => count * 2);
+  var count = $state(0);
+  var double = $derived(() => count * 2);
   
-  effect(() {
+  $effect(() {
     print('Count is now: $count');
   });
   

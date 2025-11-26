@@ -8,18 +8,18 @@
   final bool showHeader = $prop(default: true);
   
   // Derived values using props
-  var headerText = derived(() => showHeader ? title : '');
-  var itemLimit = derived(() => 'Showing up to $maxItems items');
+  var headerText = $derived(() => showHeader ? title : '');
+  var itemLimit = $derived(() => 'Showing up to $maxItems items');
   
   // State that can work with props
-  var currentCount = state(0);
-  var isOverLimit = derived(() => currentCount > maxItems);
+  var currentCount = $state(0);
+  var isOverLimit = $derived(() => currentCount > maxItems);
   
   void incrementCount() {
     currentCount = currentCount + 1;
   }
   
-  effect(() {
+  $effect(() {
     print('Component rendered with title: $title');
   });
 </script>

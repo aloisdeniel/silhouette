@@ -2,9 +2,9 @@
   final String label = $prop(default: 'Click me');
   final String variant = $prop(default: 'primary');
   
-  var buttonClass = derived(() => 'btn btn-$variant');
+  var buttonClass = $derived(() => 'btn btn-$variant');
   
-  effect(() {
+  $effect(() {
     print('Button rendered: $label');
   });
 </script>

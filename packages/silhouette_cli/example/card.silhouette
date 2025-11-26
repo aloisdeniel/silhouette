@@ -3,9 +3,9 @@
   final String description = $prop(default: 'Card description goes here');
   final bool highlighted = $prop(default: false);
   
-  var cardClass = derived(() => highlighted ? 'card highlighted' : 'card');
+  var cardClass = $derived(() => highlighted ? 'card highlighted' : 'card');
   
-  effect(() {
+  $effect(() {
     print('Card rendered: $title');
   });
 </script>

@@ -4,8 +4,8 @@
   final int age = $prop(default: 18);
   final bool isPremium = $prop(default: false);
   
-  var displayInfo = derived(() => '$username ($email)');
-  var statusText = derived(() => isPremium ? 'Premium User' : 'Free User');
+  var displayInfo = $derived(() => '$username ($email)');
+  var statusText = $derived(() => isPremium ? 'Premium User' : 'Free User');
 </script>
 
 <div class="user-card">

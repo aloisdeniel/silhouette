@@ -1,8 +1,8 @@
 <script>
   import 'button.client.g.dart';
   
-  var count = state(0);
-  var message = state('');
+  var count = $state(0);
+  var message = $state('');
   
   void increment() {
     count = count + 1;
@@ -19,7 +19,7 @@
     message = 'Count reset!';
   }
   
-  effect(() {
+  $effect(() {
     print('App state - count: $count, message: $message');
   });
 </script>

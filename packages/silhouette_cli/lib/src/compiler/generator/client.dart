@@ -159,9 +159,9 @@ class ClientCodeGenerator {
     final content = script.content;
 
     // Simple approach: use regex to match complete rune declarations
-    // For state: var name = state(value);
+    // For state: var name = $state(value);
     final statePattern = RegExp(
-      r'(?:var|final|late)\s+(\w+)\s*=\s*state\s*\(([^)]*)\)\s*;',
+      r'(?:var|final|late)\s+(\w+)\s*=\s*\$state\s*\(([^)]*)\)\s*;',
       multiLine: true,
     );
 
@@ -173,15 +173,15 @@ class ClientCodeGenerator {
     }
 
     // For derived: need to handle both arrow functions and block functions
-    // Use manual parsing to find derived declarations
+    // Use manual parsing to find $derived declarations
     final derivedPattern = RegExp(
-      r'(?:var|final|late)\s+(\w+)\s*=\s*derived\s*\(',
+      r'(?:var|final|late)\s+(\w+)\s*=\s*\$derived\s*\(',
       multiLine: true,
     );
 
     for (final match in derivedPattern.allMatches(content)) {
       final varName = match.group(1)!;
-      final startPos = match.end; // Position after 'derived('
+      final startPos = match.end; // Position after '$derived('
 
       // Find the matching closing paren by counting
       var parenCount = 1;
@@ -237,17 +237,19 @@ class ClientCodeGenerator {
 
   /// Generate script effects
   void _generateScriptEffects(ScriptNode script) {
-    // Extract and generate effect calls - use simpler regex-based approach
+    // Extract and generate effect calls - only $effect syntax
     final content = script.content;
     final effectPattern = RegExp(
-      r'effect\s*\(\s*\(\s*\)\s*\{[^}]*\}\s*\)\s*;',
+      r'\$effect\s*\(\s*\(\s*\)\s*\{[^}]*\}\s*\)\s*;',
       multiLine: true,
       dotAll: true,
     );
 
     final matches = effectPattern.allMatches(content);
     for (final match in matches) {
-      _writeLine(match.group(0)!);
+      // Normalize to use 'effect' without $ prefix in generated code
+      final effectCall = match.group(0)!.replaceFirst(r'$effect', 'effect');
+      _writeLine(effectCall);
     }
   }
 

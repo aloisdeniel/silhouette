@@ -2,10 +2,10 @@
   final String name = $prop(default: 'World');
   final int count = $prop(default: 0);
   
-  var greeting = derived(() => 'Hello, $name!');
-  var displayCount = derived(() => 'Count: $count');
+  var greeting = $derived(() => 'Hello, $name!');
+  var displayCount = $derived(() => 'Count: $count');
   
-  effect(() {
+  $effect(() {
     print('Greeting changed: $greeting');
   });
 </script>
