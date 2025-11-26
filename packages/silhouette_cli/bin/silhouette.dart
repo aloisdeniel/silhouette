@@ -18,7 +18,12 @@ void main(List<String> arguments) async {
     ..addFlag('watch',
         abbr: 'w', negatable: false, help: 'Watch for file changes')
     ..addOption('output', abbr: 'o', help: 'Output file or directory')
-    ..addOption('name', abbr: 'n', help: 'Component class name');
+    ..addOption('name', abbr: 'n', help: 'Component class name')
+    ..addOption('mode',
+        abbr: 'm',
+        help: 'Generation mode',
+        allowed: ['client', 'static'],
+        defaultsTo: 'client');
 
   try {
     final results = parser.parse(arguments);
@@ -39,6 +44,7 @@ void main(List<String> arguments) async {
     final componentName = results['name'] as String?;
     final debug = results['debug'] as bool;
     final watch = results['watch'] as bool;
+    final mode = results['mode'] as String;
 
     // Check if input is a directory
     final inputType = await FileSystemEntity.type(inputPath);
@@ -46,16 +52,16 @@ void main(List<String> arguments) async {
     if (inputType == FileSystemEntityType.directory) {
       // Directory mode
       if (watch) {
-        await _watchDirectory(inputPath, outputPath, debug);
+        await _watchDirectory(inputPath, outputPath, debug, mode);
       } else {
-        await _compileDirectory(inputPath, outputPath, debug);
+        await _compileDirectory(inputPath, outputPath, debug, mode);
       }
     } else if (inputType == FileSystemEntityType.file) {
       // Single file mode
       if (watch) {
-        await _watchAndCompile(inputPath, outputPath, componentName, debug);
+        await _watchAndCompile(inputPath, outputPath, componentName, debug, mode);
       } else {
-        await _compileFile(inputPath, outputPath, componentName, debug);
+        await _compileFile(inputPath, outputPath, componentName, debug, mode);
       }
     } else {
       print('Error: Input path not found: $inputPath');
@@ -84,6 +90,10 @@ void _printUsage(ArgParser parser) {
   print('  silhouette ./components');
   print('  silhouette ./src/components');
   print('  ');
+  print('  # Generate static HTML (server-side rendering)');
+  print('  silhouette counter.silhouette --mode static');
+  print('  silhouette ./components -m static');
+  print('  ');
   print('  # Watch for changes');
   print('  silhouette counter.silhouette --watch');
   print('  silhouette ./components --watch');
@@ -94,6 +104,7 @@ Future<void> _compileFile(
   String? outputPath,
   String? componentName,
   bool debug,
+  String mode,
 ) async {
   final file = File(inputPath);
 
@@ -113,13 +124,14 @@ Future<void> _compileFile(
     options: CompileOptions(
       debug: debug,
       componentName: derivedName,
+      mode: mode,
     ),
   );
 
   final result = compiler.compile(source);
 
   // Determine output path
-  final output = outputPath ?? _getDefaultOutputPath(inputPath);
+  final output = outputPath ?? _getDefaultOutputPath(inputPath, mode);
 
   // Write output
   final outputFile = File(output);
@@ -141,12 +153,13 @@ Future<void> _watchAndCompile(
   String? outputPath,
   String? componentName,
   bool debug,
+  String mode,
 ) async {
   print('Watching $inputPath for changes...');
   print('Press Ctrl+C to stop\n');
 
   // Initial compilation
-  await _compileFile(inputPath, outputPath, componentName, debug);
+  await _compileFile(inputPath, outputPath, componentName, debug, mode);
 
   // Watch for changes
   final file = File(inputPath);
@@ -161,15 +174,16 @@ Future<void> _watchAndCompile(
     if (modified.isAfter(lastModified!)) {
       lastModified = modified;
       print('\nFile changed, recompiling...');
-      await _compileFile(inputPath, outputPath, componentName, debug);
+      await _compileFile(inputPath, outputPath, componentName, debug, mode);
     }
   }
 }
 
-String _getDefaultOutputPath(String inputPath) {
+String _getDefaultOutputPath(String inputPath, String mode) {
   final dir = path.dirname(inputPath);
   final basename = path.basenameWithoutExtension(inputPath);
-  return path.join(dir, '$basename.client.g.dart');
+  final suffix = mode == 'static' ? 'static' : 'client';
+  return path.join(dir, '$basename.$suffix.g.dart');
 }
 
 String _deriveComponentName(String inputPath) {
@@ -213,6 +227,7 @@ Future<void> _compileDirectory(
   String directoryPath,
   String? outputPath,
   bool debug,
+  String mode,
 ) async {
   final files = _findSilhouetteFiles(directoryPath);
 
@@ -228,7 +243,7 @@ Future<void> _compileDirectory(
 
   for (final file in files) {
     try {
-      await _compileFile(file, null, null, debug);
+      await _compileFile(file, null, null, debug, mode);
       successCount++;
       print('');
     } catch (e) {
@@ -250,12 +265,13 @@ Future<void> _watchDirectory(
   String directoryPath,
   String? outputPath,
   bool debug,
+  String mode,
 ) async {
   print('Watching $directoryPath for changes...');
   print('Press Ctrl+C to stop\n');
 
   // Initial compilation
-  await _compileDirectory(directoryPath, outputPath, debug);
+  await _compileDirectory(directoryPath, outputPath, debug, mode);
 
   // Track last modified times
   final lastModified = <String, DateTime>{};
@@ -284,7 +300,7 @@ Future<void> _watchDirectory(
         // New file
         print('\nNew file detected: $file');
         try {
-          await _compileFile(file, null, null, debug);
+          await _compileFile(file, null, null, debug, mode);
           lastModified[file] = modified;
           print('');
         } catch (e) {
@@ -294,7 +310,7 @@ Future<void> _watchDirectory(
         // Modified file
         print('\nFile changed: $file');
         try {
-          await _compileFile(file, null, null, debug);
+          await _compileFile(file, null, null, debug, mode);
           lastModified[file] = modified;
           print('');
         } catch (e) {

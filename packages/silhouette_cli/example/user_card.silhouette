@@ -6,10 +6,6 @@
   
   var displayInfo = derived(() => '$username ($email)');
   var statusText = derived(() => isPremium ? 'Premium User' : 'Free User');
-  
-  effect(() {
-    print('User card rendered for: $username');
-  });
 </script>
 
 <div class="user-card">

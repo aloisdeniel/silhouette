@@ -7,6 +7,7 @@ import 'ast.dart';
 import 'parser.dart';
 import 'analyzer.dart';
 import 'generator/client.dart';
+import 'generator/static.dart';
 
 /// Compilation result
 class CompileResult {
@@ -29,9 +30,13 @@ class CompileOptions {
   /// Component name (defaults to 'Component')
   final String? componentName;
 
+  /// Generation mode: 'client' or 'static'
+  final String mode;
+
   const CompileOptions({
     this.debug = false,
     this.componentName,
+    this.mode = 'client',
   });
 }
 
@@ -64,12 +69,22 @@ class Compiler {
       }
 
       // Phase 3: Generate
-      final generator = ClientCodeGenerator(
-        ast,
-        analysis,
-        componentName: options.componentName ?? 'Component',
-      );
-      final code = generator.generate();
+      final String code;
+      if (options.mode == 'static') {
+        final generator = StaticCodeGenerator(
+          ast,
+          analysis,
+          componentName: options.componentName ?? 'Component',
+        );
+        code = generator.generate();
+      } else {
+        final generator = ClientCodeGenerator(
+          ast,
+          analysis,
+          componentName: options.componentName ?? 'Component',
+        );
+        code = generator.generate();
+      }
 
       return CompileResult(
         code: code,
