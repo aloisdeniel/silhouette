@@ -3,7 +3,11 @@ class Card {
   final String description;
   final bool highlighted;
 
-  Card({this.title = 'Card Title', this.description = 'Card description goes here', this.highlighted = false});
+  late final dynamic cardClass;
+
+  Card({this.title = 'Card Title', this.description = 'Card description goes here', this.highlighted = false}) {
+    cardClass = highlighted ? 'card highlighted' : 'card';
+  }
 
   String build() {
     final buffer = StringBuffer();

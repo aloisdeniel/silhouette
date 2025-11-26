@@ -39,6 +39,9 @@ class StaticCodeGenerator {
     // Generate property fields (only props are supported)
     _generatePropertyFields();
 
+    // Generate derived fields
+    _generateDerivedFields();
+
     // Generate constructor
     _generateConstructor(className);
 
@@ -63,10 +66,21 @@ class StaticCodeGenerator {
     }
   }
 
+  /// Generate derived fields
+  void _generateDerivedFields() {
+    for (final binding in analysis.derivedBindings) {
+      _writeLine('late final dynamic ${binding.name};');
+    }
+    if (analysis.derivedBindings.isNotEmpty) {
+      _writeLine();
+    }
+  }
+
   /// Generate constructor
   void _generateConstructor(String className) {
     // Generate constructor with named parameters for properties
     final hasProps = analysis.propBindings.isNotEmpty;
+    final hasDerived = analysis.derivedBindings.isNotEmpty;
 
     if (hasProps) {
       _write('$className({');
@@ -81,12 +95,105 @@ class StaticCodeGenerator {
           _write(', ');
         }
       }
-      _write('});');
-      _output.writeln();
+      _write('})');
+      
+      if (hasDerived) {
+        _write(' {');
+        _output.writeln();
+        _indent++;
+        _generateDerivedInitializations();
+        _indent--;
+        _writeLine('}');
+      } else {
+        _write(';');
+        _output.writeln();
+      }
     } else {
-      _writeLine('$className();');
+      if (hasDerived) {
+        _writeLine('$className() {');
+        _indent++;
+        _generateDerivedInitializations();
+        _indent--;
+        _writeLine('}');
+      } else {
+        _writeLine('$className();');
+      }
     }
     _writeLine();
+  }
+
+  /// Generate derived value initializations
+  void _generateDerivedInitializations() {
+    if (ast.script == null) return;
+    
+    final content = ast.script!.content;
+    
+    // Parse $derived declarations
+    final derivedPattern = RegExp(
+      r'(?:var|final|late)\s+(\w+)\s*=\s*\$derived\s*\(',
+      multiLine: true,
+    );
+
+    for (final match in derivedPattern.allMatches(content)) {
+      final varName = match.group(1)!;
+      final startPos = match.end; // Position after '$derived('
+
+      // Find the matching closing paren by counting
+      var parenCount = 1;
+      var braceCount = 0;
+      var inString = false;
+      var stringChar = '';
+      var i = startPos;
+
+      while (i < content.length && parenCount > 0) {
+        final char = content[i];
+
+        // Handle strings
+        if (!inString && (char == '"' || char == "'")) {
+          inString = true;
+          stringChar = char;
+        } else if (inString &&
+            char == stringChar &&
+            (i == 0 || content[i - 1] != '\\')) {
+          inString = false;
+        }
+
+        if (!inString) {
+          if (char == '(') parenCount++;
+          if (char == ')') parenCount--;
+          if (char == '{') braceCount++;
+          if (char == '}') braceCount--;
+        }
+
+        i++;
+      }
+
+      if (parenCount == 0) {
+        final derivedBody = content.substring(startPos, i - 1);
+        // Extract the expression from the arrow function
+        // For () => expr, we want just expr
+        // For () { return expr; }, we want expr
+        String expression = derivedBody.trim();
+        
+        if (expression.startsWith('()')) {
+          expression = expression.substring(2).trim();
+          
+          if (expression.startsWith('=>')) {
+            // Arrow function: () => expr
+            expression = expression.substring(2).trim();
+          } else if (expression.startsWith('{')) {
+            // Block function: () { ... }
+            // For simplicity, try to extract return statement
+            final returnMatch = RegExp(r'return\s+(.+?);').firstMatch(expression);
+            if (returnMatch != null) {
+              expression = returnMatch.group(1)!.trim();
+            }
+          }
+        }
+        
+        _writeLine('$varName = $expression;');
+      }
+    }
   }
 
   /// Generate build method
