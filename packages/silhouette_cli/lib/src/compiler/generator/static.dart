@@ -198,15 +198,11 @@ class StaticCodeGenerator {
 
   /// Generate build method
   void _generateBuildMethod() {
-    _writeLine('String build() {');
+    _writeLine('void build(StringBuffer buffer) {');
     _indent++;
-    
-    _writeLine('final buffer = StringBuffer();');
     
     // Generate HTML from template
     _generateFragment(ast.fragment);
-    
-    _writeLine('return buffer.toString();');
     
     _indent--;
     _writeLine('}');
@@ -325,9 +321,9 @@ class StaticCodeGenerator {
     
     // Create component instance and render
     if (propParams.isEmpty) {
-      _writeLine('buffer.write($componentClass().build());');
+      _writeLine('$componentClass().build(buffer);');
     } else {
-      _write('buffer.write($componentClass(');
+      _write('$componentClass(');
       for (var i = 0; i < propParams.length; i++) {
         final param = propParams[i];
         _write(param);
@@ -335,7 +331,7 @@ class StaticCodeGenerator {
           _write(', ');
         }
       }
-      _write(').build());');
+      _write(').build(buffer);');
       _output.writeln();
     }
   }

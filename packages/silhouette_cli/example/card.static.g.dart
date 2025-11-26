@@ -9,8 +9,7 @@ class Card {
     cardClass = highlighted ? 'card highlighted' : 'card';
   }
 
-  String build() {
-    final buffer = StringBuffer();
+  void build(StringBuffer buffer) {
     buffer.write("<div");
     buffer.write(" class=\"");
     buffer.write(cardClass);
@@ -25,7 +24,6 @@ class Card {
     buffer.write(description);
     buffer.write("</p>");
     buffer.write("</div>");
-    return buffer.toString();
   }
 }
 

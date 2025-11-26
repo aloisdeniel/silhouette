@@ -12,8 +12,7 @@ class UserCard {
     statusText = isPremium ? 'Premium User' : 'Free User';
   }
 
-  String build() {
-    final buffer = StringBuffer();
+  void build(StringBuffer buffer) {
     buffer.write("<div");
     buffer.write(" class=\"user-card\"");
     buffer.write(">");
@@ -44,7 +43,6 @@ class UserCard {
       buffer.write("</div>");
     }
     buffer.write("</div>");
-    return buffer.toString();
   }
 }
 

@@ -8,8 +8,7 @@ class Button {
     buttonClass = 'btn btn-$variant';
   }
 
-  String build() {
-    final buffer = StringBuffer();
+  void build(StringBuffer buffer) {
     buffer.write("<button");
     buffer.write(" class=\"");
     buffer.write(buttonClass);
@@ -17,7 +16,6 @@ class Button {
     buffer.write(">");
     buffer.write(label);
     buffer.write("</button>");
-    return buffer.toString();
   }
 }
 

@@ -10,8 +10,7 @@ class Greeting {
     displayCount = 'Count: $count';
   }
 
-  String build() {
-    final buffer = StringBuffer();
+  void build(StringBuffer buffer) {
     buffer.write("<div");
     buffer.write(">");
     buffer.write("<h1");
@@ -28,7 +27,6 @@ class Greeting {
     buffer.write(name);
     buffer.write("</p>");
     buffer.write("</div>");
-    return buffer.toString();
   }
 }
 
