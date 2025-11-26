@@ -5,12 +5,14 @@ A Svelte-like compiler for Dart that compiles templates into reactive Dart compo
 ## Features
 
 - **Svelte-like syntax** - Write components with familiar `<script>`, `<template>`, and `<style>` blocks
-- **Runes for reactivity** - Use `state()`, `derived()`, and `effect()` runes inspired by Svelte 5
+- **Runes for reactivity** - Use `$state`, `$derived`, and `$effect` runes inspired by Svelte 5
 - **Fine-grained reactivity** - Automatic dependency tracking and efficient updates
 - **Template syntax** - Support for `{#if}`, `{#each}`, `{#await}`, and more
 - **Event handlers** - `on:click`, `on:input`, etc.
 - **Two-way binding** - `bind:value` for form inputs
-- **Compiles to package:web** - Generated code uses modern web APIs via package:web (Wasm-compatible)
+- **Client and static generation** - Generate reactive client code or static HTML
+- **Directory compilation** - Compile all `.silhouette` files in a directory
+- **Watch mode** - Automatic recompilation on file changes
 
 ## Installation
 
@@ -23,22 +25,42 @@ dart pub get
 
 ### CLI
 
-Compile a `.svelte` file:
+Compile a single `.silhouette` file:
 
 ```bash
-dart run silhouette example/counter.svelte
+dart run silhouette example/counter.silhouette
 ```
 
-Specify output file:
+Compile with custom output and component name:
 
 ```bash
-dart run silhouette counter.svelte -o output/counter.dart
+dart run silhouette counter.silhouette -o output/counter.dart -n MyCounter
+```
+
+Compile all files in a directory:
+
+```bash
+dart run silhouette ./components
+```
+
+Generate static HTML (server-side rendering):
+
+```bash
+dart run silhouette counter.silhouette --mode static
+dart run silhouette ./components -m static
 ```
 
 Watch for changes:
 
 ```bash
-dart run silhouette counter.svelte --watch
+dart run silhouette counter.silhouette --watch
+dart run silhouette ./components --watch
+```
+
+Generate debug code:
+
+```bash
+dart run silhouette counter.silhouette --debug
 ```
 
 ### Programmatic API
@@ -49,7 +71,7 @@ import 'package:silhouette_cli/silhouette_cli.dart';
 void main() {
   final source = '''
 <script>
-  var count = state(0);
+  var count = $state(0);
   void increment() => count++;
 </script>
 
@@ -58,10 +80,21 @@ void main() {
 </button>
 ''';
 
-  final compiler = Compiler();
-  final result = compiler.compile(source);
+  final compiler = Compiler(
+    options: CompileOptions(
+      debug: false,
+      componentName: 'MyComponent',
+      mode: 'client', // or 'static'
+    ),
+  );
   
+  final result = compiler.compile(source);
   print(result.code);
+  
+  // Access warnings and AST
+  for (final warning in result.warnings) {
+    print('Warning: $warning');
+  }
 }
 ```
 
@@ -71,35 +104,61 @@ void main() {
 
 Runes are special functions that provide reactivity:
 
-#### `state(initialValue)`
+#### `$state(initialValue)`
 
 Create reactive state:
 
 ```dart
-var count = state(0);
-var name = state('Alice');
-var items = state([1, 2, 3]);
+var count = $state(0);
+var name = $state('Alice');
+var items = $state([1, 2, 3]);
 ```
 
-#### `derived(computation)`
+#### `$derived(computation)`
 
 Create computed/derived values:
 
 ```dart
-var count = state(5);
-var double = derived(() => count * 2);
-var squared = derived(() => count * count);
+var count = $state(5);
+var double = $derived(() => count * 2);
+var squared = $derived(() => count * count);
 ```
 
-#### `effect(callback)`
+#### `$effect(callback)`
 
 Run side effects when dependencies change:
 
 ```dart
-var count = state(0);
+var count = $state(0);
 
-effect(() {
+$effect(() {
   print('Count changed to: $count');
+});
+```
+
+#### `batch(fn)`
+
+Batch multiple state updates together:
+
+```dart
+batch(() {
+  count1 = count1 + 1;
+  count2 = count2 + 1;
+  // Effects run only once after this block
+});
+```
+
+#### `untrack(fn)`
+
+Read reactive values without creating dependencies:
+
+```dart
+var count = $state(0);
+
+$effect(() {
+  // This won't create a dependency on count
+  var currentCount = untrack(() => count);
+  print('Current count (untracked): $currentCount');
 });
 ```
 
@@ -193,14 +252,14 @@ A complete component example:
 ```html
 <script>
   // State
-  var count = state(0);
-  var name = state('World');
+  var count = $state(0);
+  var name = $state('World');
   
   // Derived values
-  var greeting = derived(() => 'Hello, $name!');
+  var greeting = $derived(() => 'Hello, $name!');
   
   // Effects
-  effect(() {
+  $effect(() {
     print('Count is: $count');
   });
   
@@ -240,36 +299,53 @@ A complete component example:
 
 See the `example/` directory for complete examples:
 
-- `example/counter.svelte` - Simple counter with state and derived values
-- `example/todo_list.svelte` - Todo list with list rendering and filtering
+- `example/counter.silhouette` - Simple counter with state and derived values
+- `example/todo_list.silhouette` - Todo list with list rendering and filtering
+- `example/dashboard.silhouette` - Dashboard component with complex state
+- `example/user_card.silhouette` - User card with props and styling
+- `example/button.silhouette` - Reusable button component
+- `example/app.silhouette` - Main application component
 - `example/example.dart` - Programmatic usage examples
 
 ## Architecture
 
 The compiler follows a three-phase architecture inspired by Svelte:
 
-1. **Parse** - Convert source to AST
-2. **Analyze** - Detect runes, build scope tree, track dependencies
-3. **Generate** - Emit Dart code using dart:html
+1. **Parse** - Convert source to AST using `Parser`
+2. **Analyze** - Detect runes, build scope tree, track dependencies using `Analyzer`
+3. **Generate** - Emit Dart code using `ClientCodeGenerator` or `StaticCodeGenerator`
 
 ### Runtime
 
 The runtime library (`lib/src/runtime/runtime.dart`) provides:
 
-- `State<T>` - Reactive state container
-- `Derived<T>` - Computed values with automatic dependency tracking
-- `Effect` - Side effect runner
+- `State<T>` - Reactive state container (accessed via `$state()`)
+- `Derived<T>` - Computed values with automatic dependency tracking (accessed via `$derived()`)
+- `Effect` - Side effect runner (accessed via `$effect()`)
+- `batch()` - Efficient update batching
+- `untrack()` - Read reactive values without tracking dependencies
 - Automatic dependency tracking via effect context
-- Efficient update batching
+- Fine-grained reactivity with minimal re-renders
+
+### Compiler API
+
+The main `Compiler` class provides:
+
+- `compile(String source)` - Compile source code to Dart
+- `CompileResult` - Contains generated code, warnings, and AST
+- `CompileOptions` - Configuration for debug mode, component name, and generation mode
 
 ## Differences from Svelte
 
 While inspired by Svelte, Silhouette has some differences:
 
 - Uses Dart instead of JavaScript/TypeScript
-- Runes are required (not optional like Svelte 5)
+- File extension is `.silhouette` instead of `.svelte`
+- Runes use `$` prefix (`$state`, `$derived`, `$effect`) like Svelte 5
 - Compiles to package:web instead of vanilla DOM APIs
 - Wasm-compatible through package:web
+- Supports both client-side and static HTML generation
+- Directory compilation and watch mode built-in
 - No component composition yet (single file components only)
 - No stores (use state directly)
 - No transitions/animations yet
@@ -293,6 +369,19 @@ Run the example:
 
 ```bash
 dart run example/example.dart
+```
+
+Compile examples manually:
+
+```bash
+# Compile a single example
+dart run silhouette example/counter.silhouette
+
+# Compile all examples
+dart run silhouette example/
+
+# Watch for changes
+dart run silhouette example/ --watch
 ```
 
 ## License
