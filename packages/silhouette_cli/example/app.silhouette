@@ -1,5 +1,5 @@
 <script>
-  import 'button.g.dart';
+  import 'button.client.g.dart';
   
   var count = state(0);
   var message = state('');

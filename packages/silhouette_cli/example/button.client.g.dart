@@ -14,8 +14,8 @@ class Button {
   Button({this.label = 'Click me', this.variant = 'primary'}) {
     _buttonClass = derived(() => 'btn btn-$variant');
     effect(() {
-      print('Button rendered: $label');
-    });
+    print('Button rendered: $label');
+  });
   }
 
   void mount(HTMLElement target) {
@@ -39,3 +39,4 @@ class Button {
     root.remove();
   }
 }
+

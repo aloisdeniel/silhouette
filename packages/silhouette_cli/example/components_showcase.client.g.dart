@@ -1,8 +1,8 @@
 import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
-import 'card.g.dart';
-import 'button.g.dart';
+import 'card.client.g.dart';
+import 'button.client.g.dart';
 
 class ComponentsShowcase {
   late final State<dynamic> _counter;

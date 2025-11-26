@@ -1,4 +1,6 @@
 <script>
+  import 'todo.dart';
+
   var todos = state([]);
   var newTodo = state('');
   var filter = state('all');

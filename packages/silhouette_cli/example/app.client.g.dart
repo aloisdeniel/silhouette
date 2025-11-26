@@ -1,7 +1,7 @@
 import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
-import 'button.g.dart';
+import 'button.client.g.dart';
 
 class App {
   late final State<dynamic> _count;

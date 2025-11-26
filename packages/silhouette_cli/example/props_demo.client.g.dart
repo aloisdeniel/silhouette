@@ -2,11 +2,11 @@ import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
 
-class Component {
-  String title;
-  String subtitle;
-  int maxItems;
-  bool showHeader;
+class PropsDemo {
+  final String title;
+  final String subtitle;
+  final int maxItems;
+  final bool showHeader;
 
   late final State<dynamic> _currentCount;
   get currentCount => _currentCount.value;
@@ -23,7 +23,7 @@ class Component {
 
   late final HTMLElement root;
 
-  Component({required this.title, this.subtitle = 'No subtitle', this.maxItems = 10, this.showHeader = true}) {
+  PropsDemo({required this.title, this.subtitle = 'No subtitle', this.maxItems = 10, this.showHeader = true}) {
     _currentCount = state(0);
     _headerText = derived(() => showHeader ? title : '');
     _itemLimit = derived(() => 'Showing up to $maxItems items');
@@ -117,3 +117,4 @@ class Component {
     root.remove();
   }
 }
+

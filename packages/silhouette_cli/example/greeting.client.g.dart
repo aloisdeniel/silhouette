@@ -2,7 +2,7 @@ import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
 
-class Component {
+class Greeting {
   final String name;
   final int count;
 
@@ -14,7 +14,7 @@ class Component {
 
   late final HTMLElement root;
 
-  Component({this.name = 'World', this.count = 0}) {
+  Greeting({this.name = 'World', this.count = 0}) {
     _greeting = derived(() => 'Hello, $name!');
     _displayCount = derived(() => 'Count: $count');
     effect(() {
@@ -58,3 +58,4 @@ class Component {
     root.remove();
   }
 }
+

@@ -1,5 +1,5 @@
 <script>
-  import 'card.g.dart';
+  import 'card.client.g.dart';
   
   var items = state(['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow']);
   var selectedIndex = state(-1);

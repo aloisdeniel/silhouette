@@ -1,7 +1,7 @@
 import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
-import 'card.g.dart';
+import 'card.client.g.dart';
 
 class Dashboard {
   late final State<dynamic> _items;

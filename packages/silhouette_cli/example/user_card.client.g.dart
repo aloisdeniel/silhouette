@@ -2,7 +2,7 @@ import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
 
-class Component {
+class UserCard {
   final String username;
   final String email;
   final int age;
@@ -16,7 +16,7 @@ class Component {
 
   late final HTMLElement root;
 
-  Component({required this.username, required this.email, this.age = 18, this.isPremium = false}) {
+  UserCard({required this.username, required this.email, this.age = 18, this.isPremium = false}) {
     _displayInfo = derived(() => '$username ($email)');
     _statusText = derived(() => isPremium ? 'Premium User' : 'Free User');
     effect(() {
@@ -86,3 +86,4 @@ class Component {
     root.remove();
   }
 }
+

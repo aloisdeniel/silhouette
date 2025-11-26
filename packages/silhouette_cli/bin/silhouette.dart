@@ -40,10 +40,26 @@ void main(List<String> arguments) async {
     final debug = results['debug'] as bool;
     final watch = results['watch'] as bool;
 
-    if (watch) {
-      await _watchAndCompile(inputPath, outputPath, componentName, debug);
+    // Check if input is a directory
+    final inputType = await FileSystemEntity.type(inputPath);
+
+    if (inputType == FileSystemEntityType.directory) {
+      // Directory mode
+      if (watch) {
+        await _watchDirectory(inputPath, outputPath, debug);
+      } else {
+        await _compileDirectory(inputPath, outputPath, debug);
+      }
+    } else if (inputType == FileSystemEntityType.file) {
+      // Single file mode
+      if (watch) {
+        await _watchAndCompile(inputPath, outputPath, componentName, debug);
+      } else {
+        await _compileFile(inputPath, outputPath, componentName, debug);
+      }
     } else {
-      await _compileFile(inputPath, outputPath, componentName, debug);
+      print('Error: Input path not found: $inputPath');
+      exit(1);
     }
   } catch (e) {
     print('Error: $e');
@@ -54,15 +70,23 @@ void main(List<String> arguments) async {
 void _printUsage(ArgParser parser) {
   print('Silhouette Compiler - Compile Svelte-like templates to Dart');
   print('');
-  print('Usage: silhouette [options] <input-file>');
+  print('Usage: silhouette [options] <input-file-or-directory>');
   print('');
   print('Options:');
   print(parser.usage);
   print('');
   print('Examples:');
-  print('  silhouette counter.svelte');
-  print('  silhouette counter.svelte -o counter.dart');
-  print('  silhouette counter.svelte --watch');
+  print('  # Compile a single file');
+  print('  silhouette counter.silhouette');
+  print('  silhouette counter.silhouette -o counter.dart');
+  print('  ');
+  print('  # Compile all .silhouette files in a directory');
+  print('  silhouette ./components');
+  print('  silhouette ./src/components');
+  print('  ');
+  print('  # Watch for changes');
+  print('  silhouette counter.silhouette --watch');
+  print('  silhouette ./components --watch');
 }
 
 Future<void> _compileFile(
@@ -161,4 +185,125 @@ String _deriveComponentName(String inputPath) {
   }).join();
 
   return pascalCase;
+}
+
+/// Find all .silhouette files in a directory
+List<String> _findSilhouetteFiles(String directoryPath) {
+  final dir = Directory(directoryPath);
+  final files = <String>[];
+
+  if (!dir.existsSync()) {
+    return files;
+  }
+
+  for (final entity in dir.listSync()) {
+    if (entity is File && entity.path.endsWith('.silhouette')) {
+      files.add(entity.path);
+    }
+  }
+
+  // Sort alphabetically for consistent ordering
+  files.sort();
+
+  return files;
+}
+
+/// Compile all .silhouette files in a directory
+Future<void> _compileDirectory(
+  String directoryPath,
+  String? outputPath,
+  bool debug,
+) async {
+  final files = _findSilhouetteFiles(directoryPath);
+
+  if (files.isEmpty) {
+    print('No .silhouette files found in $directoryPath');
+    return;
+  }
+
+  print('Found ${files.length} .silhouette file(s) in $directoryPath\n');
+
+  var successCount = 0;
+  var errorCount = 0;
+
+  for (final file in files) {
+    try {
+      await _compileFile(file, null, null, debug);
+      successCount++;
+      print('');
+    } catch (e) {
+      print('✗ Failed to compile $file: $e\n');
+      errorCount++;
+    }
+  }
+
+  print('─' * 50);
+  print('Compilation complete:');
+  print('  ✓ $successCount succeeded');
+  if (errorCount > 0) {
+    print('  ✗ $errorCount failed');
+  }
+}
+
+/// Watch a directory for changes to .silhouette files
+Future<void> _watchDirectory(
+  String directoryPath,
+  String? outputPath,
+  bool debug,
+) async {
+  print('Watching $directoryPath for changes...');
+  print('Press Ctrl+C to stop\n');
+
+  // Initial compilation
+  await _compileDirectory(directoryPath, outputPath, debug);
+
+  // Track last modified times
+  final lastModified = <String, DateTime>{};
+  final files = _findSilhouetteFiles(directoryPath);
+
+  for (final file in files) {
+    final f = File(file);
+    if (await f.exists()) {
+      lastModified[file] = await f.lastModified();
+    }
+  }
+
+  while (true) {
+    await Future.delayed(Duration(milliseconds: 500));
+
+    // Check for new or modified files
+    final currentFiles = _findSilhouetteFiles(directoryPath);
+
+    for (final file in currentFiles) {
+      final f = File(file);
+      if (!await f.exists()) continue;
+
+      final modified = await f.lastModified();
+
+      if (!lastModified.containsKey(file)) {
+        // New file
+        print('\nNew file detected: $file');
+        try {
+          await _compileFile(file, null, null, debug);
+          lastModified[file] = modified;
+          print('');
+        } catch (e) {
+          print('✗ Failed to compile: $e\n');
+        }
+      } else if (modified.isAfter(lastModified[file]!)) {
+        // Modified file
+        print('\nFile changed: $file');
+        try {
+          await _compileFile(file, null, null, debug);
+          lastModified[file] = modified;
+          print('');
+        } catch (e) {
+          print('✗ Failed to compile: $e\n');
+        }
+      }
+    }
+
+    // Remove deleted files from tracking
+    lastModified.removeWhere((file, _) => !currentFiles.contains(file));
+  }
 }

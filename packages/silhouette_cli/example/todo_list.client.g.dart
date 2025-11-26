@@ -1,8 +1,9 @@
 import 'dart:js_interop';
 import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
+import 'todo.dart';
 
-class Component {
+class TodoList {
   late final State<dynamic> _todos;
   get todos => _todos.value;
   set todos(value) => _todos.value = value;
@@ -20,7 +21,7 @@ class Component {
 
   late final HTMLElement root;
 
-  Component() {
+  TodoList() {
     _todos = state([]);
     _newTodo = state('');
     _filter = state('all');
@@ -170,3 +171,4 @@ class Component {
     root.remove();
   }
 }
+

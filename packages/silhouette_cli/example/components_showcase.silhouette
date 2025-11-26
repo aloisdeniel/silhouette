@@ -1,6 +1,6 @@
 <script>
-  import 'card.g.dart';
-  import 'button.g.dart';
+  import 'card.client.g.dart';
+  import 'button.client.g.dart';
   
   // Component state
   var counter = state(0);
