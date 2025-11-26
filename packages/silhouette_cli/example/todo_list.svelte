@@ -1,0 +1,111 @@
+<script>
+  var todos = state([]);
+  var newTodo = state('');
+  var filter = state('all');
+  
+  var filteredTodos = derived(() {
+    if (filter == 'active') {
+      return todos.where((t) => !t.completed).toList();
+    } else if (filter == 'completed') {
+      return todos.where((t) => t.completed).toList();
+    }
+    return todos;
+  });
+  
+  void addTodo() {
+    if (newTodo.trim().isEmpty) return;
+    todos = [...todos, Todo(text: newTodo, completed: false)];
+    newTodo = '';
+  }
+  
+  void toggleTodo(int index) {
+    final todo = todos[index];
+    todos[index] = Todo(text: todo.text, completed: !todo.completed);
+  }
+  
+  void removeTodo(int index) {
+    todos = [...todos.sublist(0, index), ...todos.sublist(index + 1)];
+  }
+</script>
+
+<div class="todo-app">
+  <h1>Todo List</h1>
+  
+  <div class="input-group">
+    <input 
+      type="text" 
+      bind:value={newTodo}
+      placeholder="What needs to be done?"
+    />
+    <button on:click={addTodo}>Add</button>
+  </div>
+  
+  <div class="filters">
+    <button on:click={() => filter = 'all'}>All</button>
+    <button on:click={() => filter = 'active'}>Active</button>
+    <button on:click={() => filter = 'completed'}>Completed</button>
+  </div>
+  
+  {#if filteredTodos.length > 0}
+    <ul>
+      {#each filteredTodos as todo, index}
+        <li class={todo.completed ? 'completed' : ''}>
+          <input 
+            type="checkbox" 
+            checked={todo.completed}
+            on:click={() => toggleTodo(index)}
+          />
+          <span>{todo.text}</span>
+          <button on:click={() => removeTodo(index)}>Delete</button>
+        </li>
+      {/each}
+    </ul>
+  {:else}
+    <p>No todos yet!</p>
+  {/if}
+</div>
+
+<style>
+  .todo-app {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .input-group input {
+    flex: 1;
+    padding: 10px;
+  }
+  
+  .filters {
+    margin-bottom: 20px;
+  }
+  
+  .filters button {
+    margin-right: 10px;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  li.completed span {
+    text-decoration: line-through;
+    color: #888;
+  }
+</style>
