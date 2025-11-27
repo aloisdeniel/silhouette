@@ -382,11 +382,9 @@ While inspired by Svelte, Silhouette has some differences:
 
 Current limitations (contributions welcome!):
 
-- No component imports/composition
 - No slots
 - Limited attribute directives
 - No transitions/animations
-- Basic Dart code parsing (uses analyzer package for better parsing)
 
 ## Development
 
