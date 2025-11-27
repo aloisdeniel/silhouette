@@ -1,5 +1,5 @@
 <script>
-  import 'button.client.g.dart';
+  import 'button.silhouette';
   
   final int count = $state(0);
   final String message = $state('');

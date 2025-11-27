@@ -26,12 +26,13 @@ class ClientCodeGenerator {
     _writeLine("import 'package:web/web.dart';");
     _writeLine("import 'package:silhouette_cli/src/runtime/runtime.dart';");
     
-    // Generate user imports
+    // Generate user imports (replace .silhouette with .client.g.dart)
     for (final import in analysis.imports) {
+      var uri = import.uri.replaceAll('.silhouette', '.client.g.dart');
       if (import.alias != null) {
-        _writeLine("import '${import.uri}' as ${import.alias};");
+        _writeLine("import '$uri' as ${import.alias};");
       } else {
-        _writeLine("import '${import.uri}';");
+        _writeLine("import '$uri';");
       }
     }
     _writeLine();

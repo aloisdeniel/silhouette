@@ -19,9 +19,10 @@ class StaticCodeGenerator {
   String generate() {
     _output.clear();
 
-    // Generate user imports (replace .client.g.dart with .static.g.dart)
+    // Generate user imports (replace .client.g.dart and .silhouette with .static.g.dart)
     for (final import in analysis.imports) {
-      final uri = import.uri.replaceAll('.client.g.dart', '.static.g.dart');
+      var uri = import.uri.replaceAll('.client.g.dart', '.static.g.dart');
+      uri = uri.replaceAll('.silhouette', '.static.g.dart');
       if (import.alias != null) {
         _writeLine("import '$uri' as ${import.alias};");
       } else {

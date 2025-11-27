@@ -1,5 +1,5 @@
 <script>
-  import 'card.client.g.dart';
+  import 'card.silhouette';
   
   final List<String> items = $state(const ['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow']);
   final int selectedIndex = $state(-1);
