@@ -73,7 +73,8 @@ class StaticCodeGenerator {
   /// Generate state fields (treated as props in static mode)
   void _generateStateFields() {
     for (final binding in analysis.stateBindings) {
-      _writeLine('final dynamic ${binding.name};');
+      final type = binding.type ?? 'dynamic';
+      _writeLine('final $type ${binding.name};');
     }
     if (analysis.stateBindings.isNotEmpty) {
       _writeLine();
@@ -83,7 +84,8 @@ class StaticCodeGenerator {
   /// Generate derived fields
   void _generateDerivedFields() {
     for (final binding in analysis.derivedBindings) {
-      _writeLine('late final dynamic ${binding.name};');
+      final type = binding.type ?? 'dynamic';
+      _writeLine('late final $type ${binding.name};');
     }
     if (analysis.derivedBindings.isNotEmpty) {
       _writeLine();
@@ -162,7 +164,7 @@ class StaticCodeGenerator {
     
     // Parse $derived declarations
     final derivedPattern = RegExp(
-      r'(?:var|final|late)\s+(\w+)\s*=\s*\$derived\s*\(',
+      r'(?:final|late)\s+[A-Za-z_]\w*(?:<[^>]+>)?\s+(\w+)\s*=\s*\$derived\s*\(',
       multiLine: true,
     );
 

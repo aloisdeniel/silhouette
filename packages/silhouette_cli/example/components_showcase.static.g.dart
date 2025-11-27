@@ -2,11 +2,11 @@ import 'card.static.g.dart';
 import 'button.static.g.dart';
 
 class ComponentsShowcase {
-  final dynamic counter;
-  final dynamic selectedCard;
+  final int counter;
+  final int selectedCard;
 
-  late final dynamic counterText;
-  late final dynamic hasClicked;
+  late final String counterText;
+  late final bool hasClicked;
 
   ComponentsShowcase({this.counter = 0, this.selectedCard = 0}) {
     counterText = 'Counter: $counter';

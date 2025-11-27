@@ -7,8 +7,8 @@ class Card {
   final String description;
   final bool highlighted;
 
-  late final Derived<dynamic> _cardClass;
-  get cardClass => _cardClass.value;
+  late final Derived<String> _cardClass;
+  String get cardClass => _cardClass.value;
 
   late final HTMLElement root;
 

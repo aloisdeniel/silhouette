@@ -1,11 +1,11 @@
 import 'todo.dart';
 
 class TodoList {
-  final dynamic todos;
-  final dynamic newTodo;
-  final dynamic filter;
+  final List<Todo> todos;
+  final String newTodo;
+  final String filter;
 
-  late final dynamic filteredTodos;
+  late final List<Todo> filteredTodos;
 
   TodoList({this.todos = [], this.newTodo = '', this.filter = 'all'}) {
     filteredTodos = todos.where((t) => !t.completed).toList();

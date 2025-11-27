@@ -7,12 +7,12 @@
   ) = $props();
   
   // Derived values using props
-  var headerText = $derived(() => showHeader ? title : '');
-  var itemLimit = $derived(() => 'Showing up to $maxItems items');
+  final String headerText = $derived(() => showHeader ? title : '');
+  final String itemLimit = $derived(() => 'Showing up to $maxItems items');
   
   // State that can work with props
-  var currentCount = $state(0);
-  var isOverLimit = $derived(() => currentCount > maxItems);
+  final int currentCount = $state(0);
+  final bool isOverLimit = $derived(() => currentCount > maxItems);
   
   void incrementCount() {
     currentCount = currentCount + 1;

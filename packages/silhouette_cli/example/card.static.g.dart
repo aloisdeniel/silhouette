@@ -3,7 +3,7 @@ class Card {
   final String description;
   final bool highlighted;
 
-  late final dynamic cardClass;
+  late final String cardClass;
 
   Card({this.title = 'Card Title', this.description = 'Card description goes here', this.highlighted = false}) {
     cardClass = highlighted ? 'card highlighted' : 'card';

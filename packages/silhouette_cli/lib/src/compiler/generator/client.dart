@@ -91,14 +91,15 @@ class ClientCodeGenerator {
   /// Generate state fields
   void _generateStateFields() {
     for (final binding in analysis.stateBindings) {
-      _writeLine('late final State<dynamic> _${binding.name};');
+      final type = binding.type ?? 'dynamic';
+      _writeLine('late final State<$type> _${binding.name};');
 
       // Generate getter
-      _writeLine('get ${binding.name} => _${binding.name}.value;');
+      _writeLine('$type get ${binding.name} => _${binding.name}.value;');
 
       // Generate setter
       _writeLine(
-          'set ${binding.name}(value) => _${binding.name}.value = value;');
+          'set ${binding.name}($type value) => _${binding.name}.value = value;');
       _writeLine();
     }
   }
@@ -106,10 +107,11 @@ class ClientCodeGenerator {
   /// Generate derived fields
   void _generateDerivedFields() {
     for (final binding in analysis.derivedBindings) {
-      _writeLine('late final Derived<dynamic> _${binding.name};');
+      final type = binding.type ?? 'dynamic';
+      _writeLine('late final Derived<$type> _${binding.name};');
 
       // Generate getter
-      _writeLine('get ${binding.name} => _${binding.name}.value;');
+      _writeLine('$type get ${binding.name} => _${binding.name}.value;');
       _writeLine();
     }
   }
@@ -159,9 +161,9 @@ class ClientCodeGenerator {
     final content = script.content;
 
     // Simple approach: use regex to match complete rune declarations
-    // For state: var name = $state(value);
+    // For state: final Type name = $state(value);
     final statePattern = RegExp(
-      r'(?:var|final|late)\s+(\w+)\s*=\s*\$state\s*\(([^)]*)\)\s*;',
+      r'(?:final|late)\s+[A-Za-z_]\w*(?:<[^>]+>)?\s+(\w+)\s*=\s*\$state\s*\(([^)]*)\)\s*;',
       multiLine: true,
     );
 
@@ -175,7 +177,7 @@ class ClientCodeGenerator {
     // For derived: need to handle both arrow functions and block functions
     // Use manual parsing to find $derived declarations
     final derivedPattern = RegExp(
-      r'(?:var|final|late)\s+(\w+)\s*=\s*\$derived\s*\(',
+      r'(?:final|late)\s+[A-Za-z_]\w*(?:<[^>]+>)?\s+(\w+)\s*=\s*\$derived\s*\(',
       multiLine: true,
     );
 

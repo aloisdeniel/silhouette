@@ -6,11 +6,11 @@ class Greeting {
   final String name;
   final int count;
 
-  late final Derived<dynamic> _greeting;
-  get greeting => _greeting.value;
+  late final Derived<String> _greeting;
+  String get greeting => _greeting.value;
 
-  late final Derived<dynamic> _displayCount;
-  get displayCount => _displayCount.value;
+  late final Derived<String> _displayCount;
+  String get displayCount => _displayCount.value;
 
   late final HTMLElement root;
 

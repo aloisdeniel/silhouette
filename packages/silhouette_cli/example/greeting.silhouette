@@ -4,8 +4,8 @@
     :int count = 0,
   ) = $props();
   
-  var greeting = $derived(() => 'Hello, $name!');
-  var displayCount = $derived(() => 'Count: $count');
+  final String greeting = $derived(() => 'Hello, $name!');
+  final String displayCount = $derived(() => 'Count: $count');
   
   $effect(() {
     print('Greeting changed: $greeting');

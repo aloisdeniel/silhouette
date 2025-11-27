@@ -1,8 +1,8 @@
 import 'card.static.g.dart';
 
 class Dashboard {
-  final dynamic items;
-  final dynamic selectedIndex;
+  final List<String> items;
+  final int selectedIndex;
 
   Dashboard({this.items = ['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow'], this.selectedIndex = -1});
 

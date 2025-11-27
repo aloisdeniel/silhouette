@@ -5,19 +5,19 @@ import 'card.client.g.dart';
 import 'button.client.g.dart';
 
 class ComponentsShowcase {
-  late final State<dynamic> _counter;
-  get counter => _counter.value;
-  set counter(value) => _counter.value = value;
+  late final State<int> _counter;
+  int get counter => _counter.value;
+  set counter(int value) => _counter.value = value;
 
-  late final State<dynamic> _selectedCard;
-  get selectedCard => _selectedCard.value;
-  set selectedCard(value) => _selectedCard.value = value;
+  late final State<int> _selectedCard;
+  int get selectedCard => _selectedCard.value;
+  set selectedCard(int value) => _selectedCard.value = value;
 
-  late final Derived<dynamic> _counterText;
-  get counterText => _counterText.value;
+  late final Derived<String> _counterText;
+  String get counterText => _counterText.value;
 
-  late final Derived<dynamic> _hasClicked;
-  get hasClicked => _hasClicked.value;
+  late final Derived<bool> _hasClicked;
+  bool get hasClicked => _hasClicked.value;
 
   late final HTMLElement root;
 

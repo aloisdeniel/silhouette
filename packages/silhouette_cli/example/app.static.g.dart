@@ -1,8 +1,8 @@
 import 'button.static.g.dart';
 
 class App {
-  final dynamic count;
-  final dynamic message;
+  final int count;
+  final String message;
 
   App({this.count = 0, this.message = ''});
 
@@ -30,7 +30,7 @@ class App {
     Button(label: "Reset", variant: "danger").build(buffer);
     buffer.write("</div>");
     buffer.write("</div>");
-    if (message) {
+    if (message.isNotEmpty) {
       buffer.write("<div");
       buffer.write(" class=\"message\"");
       buffer.write(">");
@@ -43,4 +43,3 @@ class App {
     buffer.write("</div>");
   }
 }
-

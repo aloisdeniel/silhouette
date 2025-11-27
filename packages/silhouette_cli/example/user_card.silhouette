@@ -6,8 +6,8 @@
     :bool isPremium = false,
   ) = $props();
   
-  var displayInfo = $derived(() => '$username ($email)');
-  var statusText = $derived(() => isPremium ? 'Premium User' : 'Free User');
+  final String displayInfo = $derived(() => '$username ($email)');
+  final String statusText = $derived(() => isPremium ? 'Premium User' : 'Free User');
 </script>
 
 <div class="user-card">

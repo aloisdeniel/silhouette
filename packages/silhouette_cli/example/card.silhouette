@@ -5,7 +5,7 @@
     :bool highlighted = false,
   ) = $props();
   
-  var cardClass = $derived(() => highlighted ? 'card highlighted' : 'card');
+  final String cardClass = $derived(() => highlighted ? 'card highlighted' : 'card');
   
   $effect(() {
     print('Card rendered: $title');

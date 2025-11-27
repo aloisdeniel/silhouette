@@ -1,7 +1,7 @@
 class Counter {
-  final dynamic count;
+  final int count;
 
-  late final dynamic double;
+  late final int double;
 
   Counter({this.count = 0}) {
     double = count * 2;

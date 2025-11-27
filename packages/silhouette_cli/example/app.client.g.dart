@@ -4,13 +4,13 @@ import 'package:silhouette_cli/src/runtime/runtime.dart';
 import 'button.client.g.dart';
 
 class App {
-  late final State<dynamic> _count;
-  get count => _count.value;
-  set count(value) => _count.value = value;
+  late final State<int> _count;
+  int get count => _count.value;
+  set count(int value) => _count.value = value;
 
-  late final State<dynamic> _message;
-  get message => _message.value;
-  set message(value) => _message.value = value;
+  late final State<String> _message;
+  String get message => _message.value;
+  set message(String value) => _message.value = value;
 
   late final HTMLElement root;
 
@@ -82,7 +82,7 @@ class App {
       while (_if_11.firstChild != null) {
         _if_11.removeChild(_if_11.firstChild!);
       }
-      if (message) {
+      if (message.isNotEmpty) {
         final _div_12 = document.createElement('div');
         _div_12.setAttribute("class", "message");
         final _p_13 = document.createElement('p');

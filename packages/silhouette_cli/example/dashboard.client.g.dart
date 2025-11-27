@@ -4,18 +4,18 @@ import 'package:silhouette_cli/src/runtime/runtime.dart';
 import 'card.client.g.dart';
 
 class Dashboard {
-  late final State<dynamic> _items;
-  get items => _items.value;
-  set items(value) => _items.value = value;
+  late final State<List<String>> _items;
+  List<String> get items => _items.value;
+  set items(List<String> value) => _items.value = value;
 
-  late final State<dynamic> _selectedIndex;
-  get selectedIndex => _selectedIndex.value;
-  set selectedIndex(value) => _selectedIndex.value = value;
+  late final State<int> _selectedIndex;
+  int get selectedIndex => _selectedIndex.value;
+  set selectedIndex(int value) => _selectedIndex.value = value;
 
   late final HTMLElement root;
 
   Dashboard() {
-    _items = state(['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow']);
+    _items = state(const ['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow']);
     _selectedIndex = state(-1);
   }
 

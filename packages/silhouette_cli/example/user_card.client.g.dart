@@ -8,11 +8,11 @@ class UserCard {
   final int age;
   final bool isPremium;
 
-  late final Derived<dynamic> _displayInfo;
-  get displayInfo => _displayInfo.value;
+  late final Derived<String> _displayInfo;
+  String get displayInfo => _displayInfo.value;
 
-  late final Derived<dynamic> _statusText;
-  get statusText => _statusText.value;
+  late final Derived<String> _statusText;
+  String get statusText => _statusText.value;
 
   late final HTMLElement root;
 

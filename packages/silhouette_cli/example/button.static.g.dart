@@ -2,7 +2,7 @@ class Button {
   final String label;
   final String variant;
 
-  late final dynamic buttonClass;
+  late final String buttonClass;
 
   Button({this.label = 'Click me', this.variant = 'primary'}) {
     buttonClass = 'btn btn-$variant';

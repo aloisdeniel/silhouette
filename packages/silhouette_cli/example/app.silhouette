@@ -1,8 +1,8 @@
 <script>
   import 'button.client.g.dart';
   
-  var count = $state(0);
-  var message = $state('');
+  final int count = $state(0);
+  final String message = $state('');
   
   void increment() {
     count = count + 1;
@@ -37,7 +37,7 @@
     </div>
   </div>
   
-  {#if message}
+  {#if message.isNotEmpty}
     <div class="message">
       <p>{message}</p>
     </div>

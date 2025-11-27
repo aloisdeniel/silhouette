@@ -4,7 +4,7 @@
     :String variant = 'primary',
   ) = $props();
   
-  var buttonClass = $derived(() => 'btn btn-$variant');
+  final String buttonClass = $derived(() => 'btn btn-$variant');
   
   $effect(() {
     print('Button rendered: $label');

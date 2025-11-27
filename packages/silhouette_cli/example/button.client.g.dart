@@ -6,8 +6,8 @@ class Button {
   final String label;
   final String variant;
 
-  late final Derived<dynamic> _buttonClass;
-  get buttonClass => _buttonClass.value;
+  late final Derived<String> _buttonClass;
+  String get buttonClass => _buttonClass.value;
 
   late final HTMLElement root;
 

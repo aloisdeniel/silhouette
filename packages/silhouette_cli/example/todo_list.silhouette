@@ -1,11 +1,11 @@
 <script>
   import 'todo.dart';
 
-  var todos = $state([]);
-  var newTodo = $state('');
-  var filter = $state('all');
+  final List<Todo> todos = $state(const <Todo>[]);
+  final String newTodo = $state('');
+  final String filter = $state('all');
   
-  var filteredTodos = $derived(() {
+  final List<Todo> filteredTodos = $derived(() {
     if (filter == 'active') {
       return todos.where((t) => !t.completed).toList();
     } else if (filter == 'completed') {

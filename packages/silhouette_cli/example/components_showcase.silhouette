@@ -3,12 +3,12 @@
   import 'button.client.g.dart';
   
   // Component state
-  var counter = $state(0);
-  var selectedCard = $state(0);
+  final int counter = $state(0);
+  final int selectedCard = $state(0);
   
   // Derived values
-  var counterText = $derived(() => 'Counter: $counter');
-  var hasClicked = $derived(() => counter > 0);
+  final String counterText = $derived(() => 'Counter: $counter');
+  final bool hasClicked = $derived(() => counter > 0);
   
   // Methods
   void handleIncrement() {

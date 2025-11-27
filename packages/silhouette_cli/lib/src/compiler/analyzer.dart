@@ -239,15 +239,17 @@ class Analyzer {
     // which processes the full script content to handle multi-line declarations
 
     // Detect variable declarations with runes (only $state/$derived/$effect)
-    final varMatch = RegExp(r'(?:var|final|late)\s+(\w+)\s*=\s*(\$\w+)\((.*)\)').firstMatch(line);
+    // Now requires explicit type: final <Type> name = $state(...)
+    final varMatch = RegExp(r'(?:final|late)\s+([A-Za-z_]\w*(?:<[^>]+>)?)\s+(\w+)\s*=\s*(\$\w+)\((.*)\)').firstMatch(line);
     if (varMatch != null) {
-      final name = varMatch.group(1)!;
-      final runeName = varMatch.group(2)!;
-      final args = varMatch.group(3)!;
+      final type = varMatch.group(1)!;
+      final name = varMatch.group(2)!;
+      final runeName = varMatch.group(3)!;
+      final args = varMatch.group(4)!;
 
       final runeType = _detectRuneType(runeName);
       if (runeType != null) {
-        final binding = _createBindingForRune(name, runeType, args);
+        final binding = _createBindingForRune(name, runeType, args, type);
         _currentScope.declare(name, binding);
       } else {
         // Normal variable
@@ -255,6 +257,7 @@ class Analyzer {
           name: name,
           kind: BindingKind.normal,
           initializer: args,
+          type: type,
         ));
       }
       return;
@@ -303,27 +306,31 @@ class Analyzer {
   }
 
   /// Create a binding for a rune
-  Binding _createBindingForRune(String name, RuneType rune, String initializer) {
+  Binding _createBindingForRune(String name, RuneType rune, String initializer, [String? type]) {
     final binding = switch (rune) {
       RuneType.state => Binding(
           name: name,
           kind: BindingKind.state,
           initializer: initializer,
+          type: type,
         ),
       RuneType.derived => Binding(
           name: name,
           kind: BindingKind.derived,
           initializer: initializer,
+          type: type,
         ),
       RuneType.props => Binding(
           name: name,
           kind: BindingKind.prop,
           initializer: initializer,
+          type: type,
         ),
       RuneType.effect => Binding(
           name: name,
           kind: BindingKind.normal,
           initializer: initializer,
+          type: type,
         ),
     };
 

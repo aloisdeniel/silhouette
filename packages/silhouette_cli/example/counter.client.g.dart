@@ -3,12 +3,12 @@ import 'package:web/web.dart';
 import 'package:silhouette_cli/src/runtime/runtime.dart';
 
 class Counter {
-  late final State<dynamic> _count;
-  get count => _count.value;
-  set count(value) => _count.value = value;
+  late final State<int> _count;
+  int get count => _count.value;
+  set count(int value) => _count.value = value;
 
-  late final Derived<dynamic> _double;
-  get double => _double.value;
+  late final Derived<int> _double;
+  int get double => _double.value;
 
   late final HTMLElement root;
 

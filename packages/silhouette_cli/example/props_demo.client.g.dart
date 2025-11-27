@@ -8,18 +8,18 @@ class PropsDemo {
   final int maxItems;
   final bool showHeader;
 
-  late final State<dynamic> _currentCount;
-  get currentCount => _currentCount.value;
-  set currentCount(value) => _currentCount.value = value;
+  late final State<int> _currentCount;
+  int get currentCount => _currentCount.value;
+  set currentCount(int value) => _currentCount.value = value;
 
-  late final Derived<dynamic> _headerText;
-  get headerText => _headerText.value;
+  late final Derived<String> _headerText;
+  String get headerText => _headerText.value;
 
-  late final Derived<dynamic> _itemLimit;
-  get itemLimit => _itemLimit.value;
+  late final Derived<String> _itemLimit;
+  String get itemLimit => _itemLimit.value;
 
-  late final Derived<dynamic> _isOverLimit;
-  get isOverLimit => _isOverLimit.value;
+  late final Derived<bool> _isOverLimit;
+  bool get isOverLimit => _isOverLimit.value;
 
   late final HTMLElement root;
 

@@ -4,25 +4,25 @@ import 'package:silhouette_cli/src/runtime/runtime.dart';
 import 'todo.dart';
 
 class TodoList {
-  late final State<dynamic> _todos;
-  get todos => _todos.value;
-  set todos(value) => _todos.value = value;
+  late final State<List<Todo>> _todos;
+  List<Todo> get todos => _todos.value;
+  set todos(List<Todo> value) => _todos.value = value;
 
-  late final State<dynamic> _newTodo;
-  get newTodo => _newTodo.value;
-  set newTodo(value) => _newTodo.value = value;
+  late final State<String> _newTodo;
+  String get newTodo => _newTodo.value;
+  set newTodo(String value) => _newTodo.value = value;
 
-  late final State<dynamic> _filter;
-  get filter => _filter.value;
-  set filter(value) => _filter.value = value;
+  late final State<String> _filter;
+  String get filter => _filter.value;
+  set filter(String value) => _filter.value = value;
 
-  late final Derived<dynamic> _filteredTodos;
-  get filteredTodos => _filteredTodos.value;
+  late final Derived<List<Todo>> _filteredTodos;
+  List<Todo> get filteredTodos => _filteredTodos.value;
 
   late final HTMLElement root;
 
   TodoList() {
-    _todos = state([]);
+    _todos = state(const <Todo>[]);
     _newTodo = state('');
     _filter = state('all');
     _filteredTodos = derived(() {

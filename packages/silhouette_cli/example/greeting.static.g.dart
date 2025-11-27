@@ -2,8 +2,8 @@ class Greeting {
   final String name;
   final int count;
 
-  late final dynamic greeting;
-  late final dynamic displayCount;
+  late final String greeting;
+  late final String displayCount;
 
   Greeting({this.name = 'World', this.count = 0}) {
     greeting = 'Hello, $name!';

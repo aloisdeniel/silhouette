@@ -4,8 +4,8 @@ class UserCard {
   final int age;
   final bool isPremium;
 
-  late final dynamic displayInfo;
-  late final dynamic statusText;
+  late final String displayInfo;
+  late final String statusText;
 
   UserCard({required this.username, required this.email, this.age = 18, this.isPremium = false}) {
     displayInfo = '$username ($email)';
