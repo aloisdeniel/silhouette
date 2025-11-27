@@ -1,6 +1,6 @@
 name: silhouette_cli
 description: A Svelte-like compiler for Dart that compiles templates into reactive Dart components using runes for state management
-version: 0.1.0
+version: 0.1.0-pre
 publish_to: none
 
 environment:

@@ -26,9 +26,14 @@ Silhouette is an experimental UI framework for Dart that takes inspiration from 
 
 ```svelte
 <script>
-  final String name = $prop(default: 'World');
-  var count = $state(0);
-  var greeting = $derived(() => 'Hello, $name!');
+  final (
+    :String name,
+  ) = $props((
+    name: 'World',
+  ));
+  
+  final int count = $state(0);
+  final String greeting = $derived(() => 'Hello, $name!');
   
   $effect(() {
     print('Count changed: $count');
@@ -101,7 +106,7 @@ dart run silhouette --help
 - **`$state(initialValue)`** - Creates reactive state
 - **`$derived(() => expression)`** - Creates computed/derived values
 - **`$effect(() => { ... })`** - Runs side effects when dependencies change
-- **`$prop(default: value)`** - Declares component properties
+- **`$props(defaults)`** - Declares component properties using Dart record destructuring
 
 ### Template Syntax
 

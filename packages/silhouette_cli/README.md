@@ -71,8 +71,8 @@ import 'package:silhouette_cli/silhouette_cli.dart';
 void main() {
   final source = '''
 <script>
-  var count = $state(0);
-  void increment() => count++;
+  final int count = $state(0);
+  void increment() => count = count + 1;
 </script>
 
 <button on:click={increment}>
@@ -109,9 +109,9 @@ Runes are special functions that provide reactivity:
 Create reactive state:
 
 ```dart
-var count = $state(0);
-var name = $state('Alice');
-var items = $state([1, 2, 3]);
+final int count = $state(0);
+final String name = $state('Alice');
+final List<int> items = $state([1, 2, 3]);
 ```
 
 #### `$derived(computation)`
@@ -119,9 +119,9 @@ var items = $state([1, 2, 3]);
 Create computed/derived values:
 
 ```dart
-var count = $state(5);
-var double = $derived(() => count * 2);
-var squared = $derived(() => count * count);
+final int count = $state(5);
+final int double = $derived(() => count * 2);
+final int squared = $derived(() => count * count);
 ```
 
 #### `$effect(callback)`
@@ -129,12 +129,30 @@ var squared = $derived(() => count * count);
 Run side effects when dependencies change:
 
 ```dart
-var count = $state(0);
+final int count = $state(0);
 
 $effect(() {
   print('Count changed to: $count');
 });
 ```
+
+#### `$props(defaults)`
+
+Declare component properties using Dart record destructuring:
+
+```dart
+final (
+  :String name,
+  :int count,
+  :bool enabled,
+) = $props((
+  name: 'Default',
+  count: 0,
+  enabled: true,
+));
+```
+
+Props are immutable and can be used in derived values and effects.
 
 #### `batch(fn)`
 
@@ -251,12 +269,19 @@ A complete component example:
 
 ```html
 <script>
+  // Props
+  final (
+    :String initialName,
+  ) = $props((
+    initialName: 'World',
+  ));
+  
   // State
-  var count = $state(0);
-  var name = $state('World');
+  final int count = $state(0);
+  final String name = $state(initialName);
   
   // Derived values
-  var greeting = $derived(() => 'Hello, $name!');
+  final String greeting = $derived(() => 'Hello, $name!');
   
   // Effects
   $effect(() {
@@ -341,15 +366,17 @@ While inspired by Svelte, Silhouette has some differences:
 
 - Uses Dart instead of JavaScript/TypeScript
 - File extension is `.silhouette` instead of `.svelte`
-- Runes use `$` prefix (`$state`, `$derived`, `$effect`) like Svelte 5
-- Compiles to package:web instead of vanilla DOM APIs
-- Wasm-compatible through package:web
+- Runes use `$` prefix (`$state`, `$derived`, `$effect`, `$props`) like Svelte 5
+- Props use Dart record destructuring syntax
+- Compiles to `package:web` instead of vanilla DOM APIs
+- Wasm-compatible through `package:web`
 - Supports both client-side and static HTML generation
 - Directory compilation and watch mode built-in
 - No component composition yet (single file components only)
 - No stores (use state directly)
 - No transitions/animations yet
 - Simpler scoped CSS (no complex selectors)
+- Uses Dart analyzer package for better code parsing
 
 ## Limitations
 
@@ -357,11 +384,9 @@ Current limitations (contributions welcome!):
 
 - No component imports/composition
 - No slots
-- No props (coming soon)
 - Limited attribute directives
 - No transitions/animations
-- No server-side rendering
-- Basic Dart code parsing (simple patterns only)
+- Basic Dart code parsing (uses analyzer package for better parsing)
 
 ## Development
 

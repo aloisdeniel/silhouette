@@ -8,12 +8,12 @@ The Silhouette compiler follows a **three-phase architecture**:
 
 1. **Parse** - Convert source text into an Abstract Syntax Tree (AST)
 2. **Analyze** - Detect runes, build scope tree, and track dependencies  
-3. **Generate** - Transform AST into executable Dart code using dart:html
+3. **Generate** - Transform AST into executable Dart code using `package:web`
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌────────────────┐
 │   Source    │────▶│  Parser      │────▶│   AST          │
-│  .svelte    │     │              │     │                │
+│ .silhouette │     │              │     │                │
 └─────────────┘     └──────────────┘     └────────────────┘
                                                 │
                                                 ▼
@@ -109,9 +109,9 @@ class Scope {
 Variables are classified as:
 
 - **normal** - Regular Dart variable
-- **state** - Reactive state (`state(...)`)
-- **derived** - Computed value (`derived(...)`)
-- **prop** - Component prop (`props()`)
+- **state** - Reactive state (`$state(...)`)
+- **derived** - Computed value (`$derived(...)`)
+- **prop** - Component prop (`$props(...)`)
 - **each** - Loop iteration variable
 
 ### Rune Detection
@@ -119,10 +119,10 @@ Variables are classified as:
 The analyzer looks for patterns like:
 
 ```dart
-var count = state(0);           // State rune
-var double = derived(() => ...); // Derived rune
-effect(() { ... });             // Effect rune
-var props = props();            // Props rune
+final int count = $state(0);              // State rune
+final int double = $derived(() => ...);   // Derived rune
+$effect(() { ... });                      // Effect rune
+final (:String name) = $props((name: '')); // Props rune
 ```
 
 ### Dependency Extraction
@@ -148,19 +148,21 @@ class AnalysisResult {
 
 ## Phase 3: Generator
 
-**Location**: `lib/src/compiler/generator.dart`
+**Location**: `lib/src/compiler/generator/` (client.dart and static.dart)
 
-The generator transforms the analyzed AST into executable Dart code using dart:html APIs.
+The generator transforms the analyzed AST into executable Dart code using `package:web` APIs.
 
 ### Code Generation Strategy
 
 The generator produces a Dart class with:
 
-1. **State fields** - `State<T>` instances with getters/setters
-2. **Derived fields** - `Derived<T>` instances with getters
-3. **Constructor** - Initializes all reactive values
-4. **mount() method** - Creates DOM and attaches to target
-5. **destroy() method** - Cleans up the component
+1. **Props fields** - Record destructuring for component properties
+2. **State fields** - `State<T>` instances with getters/setters  
+3. **Derived fields** - `Derived<T>` instances with getters
+4. **Constructor** - Accepts props and initializes all reactive values
+5. **mount() method** - Creates DOM and attaches to target (client mode)
+6. **render() method** - Generates HTML string (static mode)
+7. **destroy() method** - Cleans up the component (client mode)
 
 ### Template Compilation
 
@@ -354,13 +356,14 @@ batch(() {
 | Aspect | Svelte | Silhouette |
 |--------|--------|-----------|
 | Language | JavaScript/TypeScript | Dart |
-| Output | Vanilla JS + DOM | Dart + package:web |
-| Parsing | Custom parser + Acorn | Custom recursive descent |
+| Output | Vanilla JS + DOM | Dart + `package:web` |
+| Parsing | Custom parser + Acorn | Custom recursive descent + analyzer package |
 | Reactivity | Compiler transforms | Runtime signals |
 | Components | Import/export | Single file (for now) |
-| SSR | Yes | No (yet) |
+| Props | Destructuring syntax | Dart record destructuring |
+| SSR | Yes | Static HTML generation |
 | Animations | Yes | No (yet) |
-| Wasm Support | Via separate tooling | Native via package:web |
+| Wasm Support | Via separate tooling | Native via `package:web` |
 
 ## Performance Considerations
 
@@ -387,19 +390,20 @@ batch(() {
 
 ### Short-term
 
-1. Better Dart code parsing (use analyzer package)
-2. Component composition (imports/exports)
-3. Props system
-4. Slots for content projection
-5. More attribute directives (class:, style:)
+1. Component composition (imports/exports)
+2. Slots for content projection
+3. More attribute directives (class:, style:)
+4. Enhanced type inference for props
+5. Better error messages and diagnostics
 
 ### Medium-term
 
-1. Scoped CSS implementation
+1. Enhanced scoped CSS implementation
 2. Transitions and animations
-3. Server-side rendering
+3. Full server-side rendering with hydration
 4. Dev mode error messages
 5. Source maps
+6. Component lifecycle hooks
 
 ### Long-term
 
@@ -440,7 +444,7 @@ dart test
 Test the CLI:
 
 ```bash
-dart run bin/silhouette.dart example/counter.svelte
+dart run bin/silhouette.dart example/counter.silhouette
 ```
 
 Run the programmatic example:
@@ -454,4 +458,4 @@ dart run example/example.dart
 - [Svelte Compiler Source](https://github.com/sveltejs/svelte/tree/main/packages/svelte/src/compiler)
 - [Svelte Documentation](https://svelte.dev/docs)
 - [Svelte 5 Runes RFC](https://github.com/sveltejs/rfcs/blob/master/text/0001-runes.md)
-- [Dart HTML Library](https://api.dart.dev/stable/dart-html/dart-html-library.html)
+- [Dart Web Library (package:web)](https://pub.dev/packages/web)
