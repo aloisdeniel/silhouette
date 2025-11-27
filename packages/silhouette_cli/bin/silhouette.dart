@@ -49,19 +49,28 @@ void main(List<String> arguments) async {
     // Check if input is a directory
     final inputType = await FileSystemEntity.type(inputPath);
 
+    final compiler = Compiler(
+      options: CompileOptions(
+        debug: debug,
+        mode: mode,
+      ),
+    );
+
     if (inputType == FileSystemEntityType.directory) {
       // Directory mode
       if (watch) {
-        await _watchDirectory(inputPath, outputPath, debug, mode);
+        await _watchDirectory(compiler, inputPath, outputPath, debug);
       } else {
-        await _compileDirectory(inputPath, outputPath, debug, mode);
+        await _compileDirectory(compiler, inputPath, outputPath, debug);
       }
     } else if (inputType == FileSystemEntityType.file) {
       // Single file mode
       if (watch) {
-        await _watchAndCompile(inputPath, outputPath, componentName, debug, mode);
+        await _watchAndCompile(
+            compiler, inputPath, outputPath, componentName, debug);
       } else {
-        await _compileFile(inputPath, outputPath, componentName, debug, mode);
+        await _compileFile(
+            compiler, inputPath, outputPath, componentName, debug);
       }
     } else {
       print('Error: Input path not found: $inputPath');
@@ -100,11 +109,11 @@ void _printUsage(ArgParser parser) {
 }
 
 Future<void> _compileFile(
+  Compiler compiler,
   String inputPath,
   String? outputPath,
   String? componentName,
   bool debug,
-  String mode,
 ) async {
   final file = File(inputPath);
 
@@ -120,18 +129,11 @@ Future<void> _compileFile(
   // Derive component name from filename if not provided
   final derivedName = componentName ?? _deriveComponentName(inputPath);
 
-  final compiler = Compiler(
-    options: CompileOptions(
-      debug: debug,
-      componentName: derivedName,
-      mode: mode,
-    ),
-  );
-
-  final result = compiler.compile(source);
+  final result = compiler.compile(derivedName, source);
 
   // Determine output path
-  final output = outputPath ?? _getDefaultOutputPath(inputPath, mode);
+  final output =
+      outputPath ?? _getDefaultOutputPath(inputPath, compiler.options.mode);
 
   // Write output
   final outputFile = File(output);
@@ -149,17 +151,17 @@ Future<void> _compileFile(
 }
 
 Future<void> _watchAndCompile(
+  Compiler compiler,
   String inputPath,
   String? outputPath,
   String? componentName,
   bool debug,
-  String mode,
 ) async {
   print('Watching $inputPath for changes...');
   print('Press Ctrl+C to stop\n');
 
   // Initial compilation
-  await _compileFile(inputPath, outputPath, componentName, debug, mode);
+  await _compileFile(compiler, inputPath, outputPath, componentName, debug);
 
   // Watch for changes
   final file = File(inputPath);
@@ -174,7 +176,7 @@ Future<void> _watchAndCompile(
     if (modified.isAfter(lastModified!)) {
       lastModified = modified;
       print('\nFile changed, recompiling...');
-      await _compileFile(inputPath, outputPath, componentName, debug, mode);
+      await _compileFile(compiler, inputPath, outputPath, componentName, debug);
     }
   }
 }
@@ -224,10 +226,10 @@ List<String> _findSilhouetteFiles(String directoryPath) {
 
 /// Compile all .silhouette files in a directory
 Future<void> _compileDirectory(
+  Compiler compiler,
   String directoryPath,
   String? outputPath,
   bool debug,
-  String mode,
 ) async {
   final files = _findSilhouetteFiles(directoryPath);
 
@@ -243,7 +245,7 @@ Future<void> _compileDirectory(
 
   for (final file in files) {
     try {
-      await _compileFile(file, null, null, debug, mode);
+      await _compileFile(compiler, file, null, null, debug);
       successCount++;
       print('');
     } catch (e) {
@@ -262,16 +264,16 @@ Future<void> _compileDirectory(
 
 /// Watch a directory for changes to .silhouette files
 Future<void> _watchDirectory(
+  Compiler compiler,
   String directoryPath,
   String? outputPath,
   bool debug,
-  String mode,
 ) async {
   print('Watching $directoryPath for changes...');
   print('Press Ctrl+C to stop\n');
 
   // Initial compilation
-  await _compileDirectory(directoryPath, outputPath, debug, mode);
+  await _compileDirectory(compiler, directoryPath, outputPath, debug);
 
   // Track last modified times
   final lastModified = <String, DateTime>{};
@@ -300,7 +302,7 @@ Future<void> _watchDirectory(
         // New file
         print('\nNew file detected: $file');
         try {
-          await _compileFile(file, null, null, debug, mode);
+          await _compileFile(compiler, file, null, null, debug);
           lastModified[file] = modified;
           print('');
         } catch (e) {
@@ -310,7 +312,7 @@ Future<void> _watchDirectory(
         // Modified file
         print('\nFile changed: $file');
         try {
-          await _compileFile(file, null, null, debug, mode);
+          await _compileFile(compiler, file, null, null, debug);
           lastModified[file] = modified;
           print('');
         } catch (e) {

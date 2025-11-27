@@ -14,19 +14,10 @@ class StaticCodeGenerator {
   final StringBuffer _output = StringBuffer();
   final StringBuffer _pendingHtml = StringBuffer();
   int _indent = 0;
-  late final String _componentId;
+  final String componentId;
 
-  StaticCodeGenerator(this.ast, this.analysis, {this.componentName = 'Component'}) {
-    _componentId = _generateComponentId();
-  }
-
-  /// Generate a unique component ID based on name and randomness
-  String _generateComponentId() {
-    final random = Random();
-    final randomPart = random.nextInt(999999).toString().padLeft(6, '0');
-    final namePart = componentName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    return 'silhouette-$namePart-$randomPart';
-  }
+  StaticCodeGenerator(this.ast, this.analysis, this.componentId,
+      {this.componentName = 'Component'});
 
   /// Generate Dart code
   String generate() {
@@ -52,7 +43,7 @@ class StaticCodeGenerator {
     _indent++;
 
     // Generate component ID field
-    _writeLine('static const String componentId = \'$_componentId\';');
+    _writeLine('static const String componentId = \'$componentId\';');
     _writeLine();
 
     // Generate property fields (props and state)
@@ -139,7 +130,7 @@ class StaticCodeGenerator {
 
     if (hasParams) {
       _write('$className({');
-      
+
       // Add prop parameters
       var paramIndex = 0;
       for (var i = 0; i < analysis.propBindings.length; i++) {
@@ -150,24 +141,26 @@ class StaticCodeGenerator {
           _write('required this.${binding.name}');
         }
         paramIndex++;
-        if (paramIndex < analysis.propBindings.length + analysis.stateBindings.length) {
+        if (paramIndex <
+            analysis.propBindings.length + analysis.stateBindings.length) {
           _write(', ');
         }
       }
-      
+
       // Add state parameters (treated as props with default values)
       for (var i = 0; i < analysis.stateBindings.length; i++) {
         final binding = analysis.stateBindings[i];
         final defaultValue = binding.initializer ?? '0';
         _write('this.${binding.name} = $defaultValue');
         paramIndex++;
-        if (paramIndex < analysis.propBindings.length + analysis.stateBindings.length) {
+        if (paramIndex <
+            analysis.propBindings.length + analysis.stateBindings.length) {
           _write(', ');
         }
       }
-      
+
       _write('})');
-      
+
       if (hasDerived) {
         _write(' {');
         _output.writeln();
@@ -196,9 +189,9 @@ class StaticCodeGenerator {
   /// Generate derived value initializations
   void _generateDerivedInitializations() {
     if (ast.script == null) return;
-    
+
     final content = ast.script!.content;
-    
+
     // Parse $derived declarations
     final derivedPattern = RegExp(
       r'(?:final|late)\s+[A-Za-z_]\w*(?:<[^>]+>)?\s+(\w+)\s*=\s*\$derived\s*\(',
@@ -242,23 +235,24 @@ class StaticCodeGenerator {
         // For () => expr, we want just expr
         // For () { return expr; }, we want expr
         String expression = derivedBody.trim();
-        
+
         if (expression.startsWith('()')) {
           expression = expression.substring(2).trim();
-          
+
           if (expression.startsWith('=>')) {
             // Arrow function: () => expr
             expression = expression.substring(2).trim();
           } else if (expression.startsWith('{')) {
             // Block function: () { ... }
             // For simplicity, try to extract return statement
-            final returnMatch = RegExp(r'return\s+(.+?);').firstMatch(expression);
+            final returnMatch =
+                RegExp(r'return\s+(.+?);').firstMatch(expression);
             if (returnMatch != null) {
               expression = returnMatch.group(1)!.trim();
             }
           }
         }
-        
+
         _writeLine('$varName = $expression;');
       }
     }
@@ -268,13 +262,13 @@ class StaticCodeGenerator {
   void _generateBuildMethod() {
     _writeLine('void build(StringBuffer buffer) {');
     _indent++;
-    
+
     // Set component ID on all template nodes
     _setComponentIdOnNodes(ast.fragment);
-    
+
     // Generate HTML from template
     _generateFragment(ast.fragment);
-    
+
     _indent--;
     _writeLine('}');
   }
@@ -288,8 +282,8 @@ class StaticCodeGenerator {
 
   /// Set component ID on a single template node and its children
   void _setComponentIdOnNode(TemplateNode node) {
-    node.componentId = _componentId;
-    
+    node.componentId = componentId;
+
     if (node is ElementNode) {
       for (final child in node.children) {
         _setComponentIdOnNode(child);
@@ -447,7 +441,7 @@ class StaticCodeGenerator {
   void _generateComponent(ElementNode node) {
     _flushHtml(); // Flush before component instantiation logic
     final componentClass = _capitalize(node.name);
-    
+
     // Build props map from attributes
     final propParams = <String>[];
     for (final attr in node.attributes) {
@@ -456,13 +450,18 @@ class StaticCodeGenerator {
         if (attr.value.isEmpty) {
           // Boolean prop (just presence)
           propParams.add('${attr.name}: true');
-        } else if (attr.value.length == 1 && attr.value.first is ExpressionAttributeValue) {
+        } else if (attr.value.length == 1 &&
+            attr.value.first is ExpressionAttributeValue) {
           // Expression value
-          final expr = (attr.value.first as ExpressionAttributeValue).expression;
+          final expr =
+              (attr.value.first as ExpressionAttributeValue).expression;
           propParams.add('${attr.name}: $expr');
         } else if (attr.value.every((v) => v is TextAttributeValue)) {
           // Pure static text
-          final text = attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
+          final text = attr.value
+              .whereType<TextAttributeValue>()
+              .map((v) => v.text)
+              .join();
           propParams.add('${attr.name}: "${_escapeString(text)}"');
         } else {
           // Mixed text and expressions - use string interpolation
@@ -478,7 +477,7 @@ class StaticCodeGenerator {
         }
       }
     }
-    
+
     // Create component instance and render
     if (propParams.isEmpty) {
       _writeLine('$componentClass().build(buffer);');
@@ -504,7 +503,8 @@ class StaticCodeGenerator {
       case SpreadAttribute():
         // Spread attributes not supported in static generation
         _flushHtml();
-        _writeLine('// Spread attributes are not supported in static generation');
+        _writeLine(
+            '// Spread attributes are not supported in static generation');
       case EventAttribute():
         // Event attributes not supported in static generation
         break;
@@ -527,7 +527,7 @@ class StaticCodeGenerator {
     if (hasExpression) {
       // Build attribute value from mixed content
       _emitStatic(' ${attr.name}="');
-      
+
       for (final value in attr.value) {
         if (value is TextAttributeValue) {
           _emitStatic(value.text);
@@ -535,13 +535,14 @@ class StaticCodeGenerator {
           _emitExpression(value.expression);
         }
       }
-      
+
       _emitStatic('"');
     } else {
       // Static attribute
       final text =
           attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
-      _emitStatic(' ${attr.name}="${text}"'); // No _escapeString here, handled at flush
+      _emitStatic(
+          ' ${attr.name}="${text}"'); // No _escapeString here, handled at flush
     }
   }
 

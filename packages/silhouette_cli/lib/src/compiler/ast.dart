@@ -65,7 +65,9 @@ class FragmentNode extends AstNode {
 
 /// Base class for template nodes
 abstract class TemplateNode extends AstNode {
-  TemplateNode(super.start, super.end);
+  String? componentId;
+  
+  TemplateNode(super.start, super.end, {this.componentId});
 }
 
 /// Text node
@@ -76,6 +78,7 @@ class TextNode extends TemplateNode {
     required this.data,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -87,6 +90,7 @@ class ExpressionTagNode extends TemplateNode {
     required this.expression,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -98,6 +102,7 @@ class HtmlTagNode extends TemplateNode {
     required this.expression,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -115,6 +120,7 @@ class ElementNode extends TemplateNode {
     required this.isComponent,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -200,7 +206,7 @@ class BindDirective extends AttributeNode {
 
 /// Control flow blocks
 abstract class BlockNode extends TemplateNode {
-  BlockNode(super.start, super.end);
+  BlockNode(super.start, super.end, {super.componentId});
 }
 
 /// If block {#if condition}...{:else}...{/if}
@@ -215,6 +221,7 @@ class IfBlockNode extends BlockNode {
     required this.alternate,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -236,6 +243,7 @@ class EachBlockNode extends BlockNode {
     required this.fallback,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -257,6 +265,7 @@ class AwaitBlockNode extends BlockNode {
     required this.catchBlock,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -272,6 +281,7 @@ class SnippetBlockNode extends BlockNode {
     required this.body,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }
 
@@ -283,5 +293,6 @@ class RenderTagNode extends TemplateNode {
     required this.expression,
     required int start,
     required int end,
+    super.componentId,
   }) : super(start, end);
 }

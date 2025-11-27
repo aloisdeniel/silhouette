@@ -1,5 +1,5 @@
 class Counter {
-  static const String componentId = 'silhouette-counter-750174';
+  static const String componentId = 'silhouette-counter-037164';
 
   final int count;
 

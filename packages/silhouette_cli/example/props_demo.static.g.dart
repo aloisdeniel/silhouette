@@ -1,5 +1,5 @@
 class PropsDemo {
-  static const String componentId = 'silhouette-propsdemo-840048';
+  static const String componentId = 'silhouette-propsdemo-438669';
 
   final String title;
   final String subtitle;

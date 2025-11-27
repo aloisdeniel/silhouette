@@ -15,20 +15,10 @@ class ClientCodeGenerator {
   int _indent = 0;
   int _tempVarCounter = 0;
   final Map<String, String> _elementVars = {};
-  late final String _componentId;
+  final String componentId;
 
-  ClientCodeGenerator(this.ast, this.analysis,
-      {this.componentName = 'Component'}) {
-    _componentId = _generateComponentId();
-  }
-
-  /// Generate a unique component ID based on name and randomness
-  String _generateComponentId() {
-    final random = Random();
-    final randomPart = random.nextInt(999999).toString().padLeft(6, '0');
-    final namePart = componentName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    return 'silhouette-$namePart-$randomPart';
-  }
+  ClientCodeGenerator(this.ast, this.analysis, this.componentId,
+      {this.componentName = 'Component'}) {}
 
   /// Generate Dart code
   String generate() {
@@ -279,7 +269,7 @@ class ClientCodeGenerator {
     _indent++;
 
     _writeLine("root = document.createElement('div') as HTMLElement;");
-    _writeLine("root.className = '$_componentId';");
+    _writeLine("root.className = '$componentId';");
     _writeLine();
 
     // Generate template

@@ -1,7 +1,7 @@
 import 'todo.dart';
 
 class TodoList {
-  static const String componentId = 'silhouette-todolist-448017';
+  static const String componentId = 'silhouette-todolist-279830';
 
   final List<Todo> todos;
   final String newTodo;

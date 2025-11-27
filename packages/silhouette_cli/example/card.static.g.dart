@@ -1,5 +1,5 @@
 class Card {
-  static const String componentId = 'silhouette-card-756474';
+  static const String componentId = 'silhouette-card-377022';
 
   final String title;
   final String description;

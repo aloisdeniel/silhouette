@@ -3,6 +3,8 @@
 /// Orchestrates parsing, analysis, and code generation
 library;
 
+import 'dart:math';
+
 import 'ast.dart';
 import 'parser.dart';
 import 'analyzer.dart';
@@ -27,15 +29,11 @@ class CompileOptions {
   /// Generate debug code
   final bool debug;
 
-  /// Component name (defaults to 'Component')
-  final String? componentName;
-
   /// Generation mode: 'client' or 'static'
   final String mode;
 
   const CompileOptions({
     this.debug = false,
-    this.componentName,
     this.mode = 'client',
   });
 }
@@ -43,12 +41,23 @@ class CompileOptions {
 /// Main compiler
 class Compiler {
   final CompileOptions options;
+  final _random = Random();
 
   Compiler({this.options = const CompileOptions()});
 
+  /// Generate a unique component ID based on name and randomness
+  String _generateComponentId(String componentName) {
+    final randomPart = _random.nextInt(999999).toString().padLeft(6, '0');
+    final namePart =
+        componentName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return 'silhouette-$namePart-$randomPart';
+  }
+
   /// Compile a Silhouette component from source
-  CompileResult compile(String source) {
+  CompileResult compile(String componentName, String source) {
     final warnings = <String>[];
+
+    final componentId = _generateComponentId(componentName);
 
     try {
       // Phase 1: Parse
@@ -74,14 +83,16 @@ class Compiler {
         final generator = StaticCodeGenerator(
           ast,
           analysis,
-          componentName: options.componentName ?? 'Component',
+          componentId,
+          componentName: componentName,
         );
         code = generator.generate();
       } else {
         final generator = ClientCodeGenerator(
           ast,
           analysis,
-          componentName: options.componentName ?? 'Component',
+          componentId,
+          componentName: componentName,
         );
         code = generator.generate();
       }

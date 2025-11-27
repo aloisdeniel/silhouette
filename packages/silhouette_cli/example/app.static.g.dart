@@ -1,7 +1,7 @@
 import 'button.static.g.dart';
 
 class App {
-  static const String componentId = 'silhouette-app-110758';
+  static const String componentId = 'silhouette-app-734342';
 
   final int count;
   final String message;

@@ -1,7 +1,7 @@
 import 'card.static.g.dart';
 
 class Dashboard {
-  static const String componentId = 'silhouette-dashboard-481280';
+  static const String componentId = 'silhouette-dashboard-055288';
 
   final List<String> items;
   final int selectedIndex;

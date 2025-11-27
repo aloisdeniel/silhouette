@@ -1,5 +1,5 @@
 class Button {
-  static const String componentId = 'silhouette-button-958031';
+  static const String componentId = 'silhouette-button-543318';
 
   final String label;
   final String variant;

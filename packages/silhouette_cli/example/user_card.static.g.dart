@@ -1,5 +1,5 @@
 class UserCard {
-  static const String componentId = 'silhouette-usercard-937074';
+  static const String componentId = 'silhouette-usercard-737171';
 
   final String username;
   final String email;
