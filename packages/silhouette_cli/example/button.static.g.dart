@@ -1,5 +1,5 @@
 class Button {
-  static const String componentId = 'silhouette-button-543318';
+  static const String componentId = 'silhouette-button-522198';
 
   final String label;
   final String variant;
@@ -11,7 +11,7 @@ class Button {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<button class=\"");
+    buffer.write("<button class=\"silhouette-button-522198 ");
     buffer.write(buttonClass);
     buffer.write("\">");
     buffer.write(label);

@@ -1,5 +1,5 @@
 class PropsDemo {
-  static const String componentId = 'silhouette-propsdemo-438669';
+  static const String componentId = 'silhouette-propsdemo-952536';
 
   final String title;
   final String subtitle;
@@ -19,7 +19,7 @@ class PropsDemo {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div class=\"props-demo\">");
+    buffer.write("<div class=\"silhouette-propsdemo-952536 props-demo\">");
     if (showHeader) {
       buffer.write("<div class=\"header\"><h1>");
       buffer.write(title);

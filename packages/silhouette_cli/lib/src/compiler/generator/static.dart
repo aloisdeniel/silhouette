@@ -15,6 +15,7 @@ class StaticCodeGenerator {
   final StringBuffer _pendingHtml = StringBuffer();
   int _indent = 0;
   final String componentId;
+  final Set<TemplateNode> _rootNodes = {};
 
   StaticCodeGenerator(this.ast, this.analysis, this.componentId,
       {this.componentName = 'Component'});
@@ -276,6 +277,10 @@ class StaticCodeGenerator {
   /// Set component ID on all template nodes
   void _setComponentIdOnNodes(FragmentNode fragment) {
     for (final node in fragment.nodes) {
+      // Mark root-level ElementNodes
+      if (node is ElementNode && !node.isComponent) {
+        _rootNodes.add(node);
+      }
       _setComponentIdOnNode(node);
     }
   }
@@ -421,9 +426,26 @@ class StaticCodeGenerator {
     // Opening tag
     _emitStatic('<${node.name}');
 
+    // Add componentId class to root nodes
+    final isRootNode = _rootNodes.contains(node);
+    if (isRootNode) {
+      // Check if there's already a class attribute
+      final existingClassAttr = node.attributes
+          .whereType<RegularAttribute>()
+          .where((attr) => attr.name == 'class')
+          .firstOrNull;
+      
+      if (existingClassAttr != null) {
+        // We'll handle this when generating the class attribute
+      } else {
+        // No existing class attribute, add one with just the componentId
+        _emitStatic(' class="$componentId"');
+      }
+    }
+
     // Generate attributes
     for (final attr in node.attributes) {
-      _generateAttribute(attr);
+      _generateAttribute(attr, isRootNode: isRootNode);
     }
 
     _emitStatic('>');
@@ -496,10 +518,10 @@ class StaticCodeGenerator {
   }
 
   /// Generate attribute
-  void _generateAttribute(AttributeNode attr) {
+  void _generateAttribute(AttributeNode attr, {bool isRootNode = false}) {
     switch (attr) {
       case RegularAttribute():
-        _generateRegularAttribute(attr);
+        _generateRegularAttribute(attr, isRootNode: isRootNode);
       case SpreadAttribute():
         // Spread attributes not supported in static generation
         _flushHtml();
@@ -515,7 +537,7 @@ class StaticCodeGenerator {
   }
 
   /// Generate regular attribute
-  void _generateRegularAttribute(RegularAttribute attr) {
+  void _generateRegularAttribute(RegularAttribute attr, {bool isRootNode = false}) {
     if (attr.value.isEmpty) {
       _emitStatic(' ${attr.name}');
       return;
@@ -523,6 +545,29 @@ class StaticCodeGenerator {
 
     // Check if attribute contains expressions
     final hasExpression = attr.value.any((v) => v is ExpressionAttributeValue);
+
+    // Special handling for class attribute on root nodes
+    if (isRootNode && attr.name == 'class') {
+      if (hasExpression) {
+        // Build attribute value from mixed content, prepending componentId
+        _emitStatic(' class="$componentId ');
+        
+        for (final value in attr.value) {
+          if (value is TextAttributeValue) {
+            _emitStatic(value.text);
+          } else if (value is ExpressionAttributeValue) {
+            _emitExpression(value.expression);
+          }
+        }
+        
+        _emitStatic('"');
+      } else {
+        // Static class attribute
+        final text = attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
+        _emitStatic(' class="$componentId $text"');
+      }
+      return;
+    }
 
     if (hasExpression) {
       // Build attribute value from mixed content

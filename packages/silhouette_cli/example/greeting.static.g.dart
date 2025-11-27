@@ -1,5 +1,5 @@
 class Greeting {
-  static const String componentId = 'silhouette-greeting-736373';
+  static const String componentId = 'silhouette-greeting-540710';
 
   final String name;
   final int count;
@@ -13,7 +13,7 @@ class Greeting {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div><h1>");
+    buffer.write("<div class=\"silhouette-greeting-540710\"><h1>");
     buffer.write(greeting);
     buffer.write("</h1><p>");
     buffer.write(displayCount);

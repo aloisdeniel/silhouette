@@ -1,5 +1,5 @@
 class UserCard {
-  static const String componentId = 'silhouette-usercard-737171';
+  static const String componentId = 'silhouette-usercard-737705';
 
   final String username;
   final String email;
@@ -15,7 +15,7 @@ class UserCard {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div class=\"user-card\"><h2>");
+    buffer.write("<div class=\"silhouette-usercard-737705 user-card\"><h2>");
     buffer.write(username);
     buffer.write("</h2><p>Email: ");
     buffer.write(email);

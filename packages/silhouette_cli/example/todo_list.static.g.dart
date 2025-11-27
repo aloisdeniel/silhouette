@@ -1,7 +1,7 @@
 import 'todo.dart';
 
 class TodoList {
-  static const String componentId = 'silhouette-todolist-279830';
+  static const String componentId = 'silhouette-todolist-974517';
 
   final List<Todo> todos;
   final String newTodo;
@@ -14,7 +14,7 @@ class TodoList {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div class=\"todo-app\"><h1>Todo List</h1><div class=\"input-group\"><input type=\"text\" placeholder=\"What needs to be done?\"></input><button>Add</button></div><div class=\"filters\"><button>All</button><button>Active</button><button>Completed</button></div>");
+    buffer.write("<div class=\"silhouette-todolist-974517 todo-app\"><h1>Todo List</h1><div class=\"input-group\"><input type=\"text\" placeholder=\"What needs to be done?\"></input><button>Add</button></div><div class=\"filters\"><button>All</button><button>Active</button><button>Completed</button></div>");
     if (filteredTodos.length > 0) {
       buffer.write("<ul>");
       for (var index = 0; index < filteredTodos.length; index++) {

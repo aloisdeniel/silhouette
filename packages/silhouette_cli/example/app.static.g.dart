@@ -1,7 +1,7 @@
 import 'button.static.g.dart';
 
 class App {
-  static const String componentId = 'silhouette-app-734342';
+  static const String componentId = 'silhouette-app-194697';
 
   final int count;
   final String message;
@@ -9,7 +9,7 @@ class App {
   App({this.count = 0, this.message = ''});
 
   void build(StringBuffer buffer) {
-    buffer.write("<div class=\"app\"><h1>Custom Components Demo</h1><div class=\"counter\"><p>Count: ");
+    buffer.write("<div class=\"silhouette-app-194697 app\"><h1>Custom Components Demo</h1><div class=\"counter\"><p>Count: ");
     buffer.write(count);
     buffer.write("</p><div class=\"buttons\">");
     Button(label: "Increment", variant: "primary").build(buffer);

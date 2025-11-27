@@ -2,7 +2,7 @@ import 'card.static.g.dart';
 import 'button.static.g.dart';
 
 class ComponentsShowcase {
-  static const String componentId = 'silhouette-componentsshowcase-960922';
+  static const String componentId = 'silhouette-componentsshowcase-438897';
 
   final int counter;
   final int selectedCard;
@@ -16,7 +16,7 @@ class ComponentsShowcase {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div class=\"showcase\"><h1>Silhouette Components Showcase</h1><section><h2>Component Composition</h2><p>Demonstrating imported components with props</p>");
+    buffer.write("<div class=\"silhouette-componentsshowcase-438897 showcase\"><h1>Silhouette Components Showcase</h1><section><h2>Component Composition</h2><p>Demonstrating imported components with props</p>");
     Card(title: "Welcome Card", description: "This card is a reusable component", highlighted: counter > 5).build(buffer);
     buffer.write("</section><section><h2>Dynamic Components in Loops</h2>");
     for (var i = 0; i < ['Feature 1', 'Feature 2', 'Feature 3'].length; i++) {

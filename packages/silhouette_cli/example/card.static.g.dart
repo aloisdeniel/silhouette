@@ -1,5 +1,5 @@
 class Card {
-  static const String componentId = 'silhouette-card-377022';
+  static const String componentId = 'silhouette-card-098047';
 
   final String title;
   final String description;
@@ -12,7 +12,7 @@ class Card {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div class=\"");
+    buffer.write("<div class=\"silhouette-card-098047 ");
     buffer.write(cardClass);
     buffer.write("\"><h3>");
     buffer.write(title);
