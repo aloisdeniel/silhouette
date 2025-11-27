@@ -207,6 +207,8 @@ class Parser {
           start: start,
           end: _index,
         );
+      } else if (_match('render')) {
+        return _parseRenderTag(start);
       }
     } else if (_peek() == '#') {
       _advance(); // consume #
@@ -217,6 +219,8 @@ class Parser {
         return _parseEachBlock(start);
       } else if (_match('await')) {
         return _parseAwaitBlock(start);
+      } else if (_match('snippet')) {
+        return _parseSnippetBlock(start);
       }
     }
 
@@ -346,6 +350,47 @@ class Parser {
       pending: pending,
       then: thenBlock,
       catchBlock: catchBlock,
+      start: start,
+      end: _index,
+    );
+  }
+
+  /// Parse a render tag {@render ...}
+  RenderTagNode _parseRenderTag(int start) {
+    _skipWhitespace();
+    final expression = _readUntil('}').trim();
+
+    return RenderTagNode(
+      expression: expression,
+      start: start,
+      end: _index,
+    );
+  }
+
+  /// Parse a snippet block {#snippet name(params)}...{/snippet}
+  SnippetBlockNode _parseSnippetBlock(int start) {
+    _skipWhitespace();
+
+    // Parse name
+    final name = _readIdentifier();
+    _skipWhitespace();
+
+    String parameters = '';
+    if (_peek() == '(') {
+      _advance(); // consume (
+      parameters = _readUntil(')'); // consumes )
+    }
+
+    _readUntil('}'); // Finish opening tag
+
+    final body = _parseFragment(['{/snippet}']);
+
+    _match('{/snippet}');
+
+    return SnippetBlockNode(
+      name: name,
+      parameters: parameters.trim(),
+      body: body,
       start: start,
       end: _index,
     );

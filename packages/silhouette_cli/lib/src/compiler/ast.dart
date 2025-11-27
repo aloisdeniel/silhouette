@@ -259,3 +259,29 @@ class AwaitBlockNode extends BlockNode {
     required int end,
   }) : super(start, end);
 }
+
+/// Snippet block {#snippet name(params)}...{/snippet}
+class SnippetBlockNode extends BlockNode {
+  final String name;
+  final String parameters;
+  final List<TemplateNode> body;
+
+  SnippetBlockNode({
+    required this.name,
+    required this.parameters,
+    required this.body,
+    required int start,
+    required int end,
+  }) : super(start, end);
+}
+
+/// Render tag {@render expression}
+class RenderTagNode extends TemplateNode {
+  final String expression;
+
+  RenderTagNode({
+    required this.expression,
+    required int start,
+    required int end,
+  }) : super(start, end);
+}

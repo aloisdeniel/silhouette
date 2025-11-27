@@ -175,7 +175,6 @@ class StaticCodeGenerator {
 
       // Find the matching closing paren by counting
       var parenCount = 1;
-      var braceCount = 0;
       var inString = false;
       var stringChar = '';
       var i = startPos;
@@ -196,8 +195,6 @@ class StaticCodeGenerator {
         if (!inString) {
           if (char == '(') parenCount++;
           if (char == ')') parenCount--;
-          if (char == '{') braceCount++;
-          if (char == '}') braceCount--;
         }
 
         i++;
@@ -268,9 +265,36 @@ class StaticCodeGenerator {
       case AwaitBlockNode():
         // Await blocks are not supported in static generation
         _writeLine('// Await blocks are not supported in static generation');
+      case SnippetBlockNode():
+        _generateSnippetBlock(node);
+      case RenderTagNode():
+        _generateRenderTag(node);
       default:
         break;
     }
+  }
+
+  /// Generate snippet block
+  void _generateSnippetBlock(SnippetBlockNode node) {
+    _writeLine('dynamic ${node.name}(${node.parameters}) {');
+    _indent++;
+    _writeLine('return (StringBuffer buffer) {');
+    _indent++;
+
+    for (final child in node.body) {
+      _generateTemplateNode(child);
+    }
+
+    _indent--;
+    _writeLine('};');
+    _indent--;
+    _writeLine('}');
+    _writeLine();
+  }
+
+  /// Generate render tag
+  void _generateRenderTag(RenderTagNode node) {
+    _writeLine('(${node.expression})?.call(buffer);');
   }
 
   /// Generate text node
@@ -414,7 +438,8 @@ class StaticCodeGenerator {
       _writeLine('buffer.write("\\"");');
     } else {
       // Static attribute
-      final text = attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
+      final text =
+          attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
       _writeLine('buffer.write(" ${attr.name}=\\"${_escapeString(text)}\\"");');
     }
   }
@@ -447,7 +472,8 @@ class StaticCodeGenerator {
   /// Generate each block
   void _generateEachBlock(EachBlockNode node) {
     final indexName = node.indexName ?? 'index';
-    _writeLine('for (var $indexName = 0; $indexName < ${node.expression}.length; $indexName++) {');
+    _writeLine(
+        'for (var $indexName = 0; $indexName < ${node.expression}.length; $indexName++) {');
     _indent++;
     _writeLine('final ${node.itemName} = ${node.expression}[$indexName];');
 

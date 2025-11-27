@@ -15,7 +15,8 @@ class ClientCodeGenerator {
   int _tempVarCounter = 0;
   final Map<String, String> _elementVars = {};
 
-  ClientCodeGenerator(this.ast, this.analysis, {this.componentName = 'Component'});
+  ClientCodeGenerator(this.ast, this.analysis,
+      {this.componentName = 'Component'});
 
   /// Generate Dart code
   String generate() {
@@ -25,7 +26,7 @@ class ClientCodeGenerator {
     _writeLine("import 'dart:js_interop';");
     _writeLine("import 'package:web/web.dart';");
     _writeLine("import 'package:silhouette_cli/src/runtime/runtime.dart';");
-    
+
     // Generate user imports (replace .silhouette with .client.g.dart)
     for (final import in analysis.imports) {
       var uri = import.uri.replaceAll('.silhouette', '.client.g.dart');
@@ -70,11 +71,11 @@ class ClientCodeGenerator {
     _indent--;
     _writeLine('}');
     _writeLine();
-    
+
     // Add a type alias using the capitalized file name for easier imports
     // This will be set by the compiler when it knows the source file name
     // For now, we'll just use Component
-    
+
     return _output.toString();
   }
 
@@ -188,7 +189,6 @@ class ClientCodeGenerator {
 
       // Find the matching closing paren by counting
       var parenCount = 1;
-      var braceCount = 0;
       var inString = false;
       var stringChar = '';
       var i = startPos;
@@ -209,8 +209,6 @@ class ClientCodeGenerator {
         if (!inString) {
           if (char == '(') parenCount++;
           if (char == ')') parenCount--;
-          if (char == '{') braceCount++;
-          if (char == '}') braceCount--;
         }
 
         i++;
@@ -315,9 +313,45 @@ class ClientCodeGenerator {
         _generateEachBlock(node, parent);
       case AwaitBlockNode():
         _generateAwaitBlock(node, parent);
+      case SnippetBlockNode():
+        _generateSnippetBlock(node, parent);
+      case RenderTagNode():
+        _generateRenderTag(node, parent);
       default:
         break;
     }
+  }
+
+  /// Generate snippet block
+  void _generateSnippetBlock(SnippetBlockNode node, String parent) {
+    // Snippet defines a function that returns a renderer function
+    // dynamic name(params) { return (HTMLElement target) { ... }; }
+
+    _writeLine('dynamic ${node.name}(${node.parameters}) {');
+    _indent++;
+    _writeLine('return (HTMLElement target) {');
+    _indent++;
+
+    for (final child in node.body) {
+      _generateTemplateNode(child, 'target');
+    }
+
+    _indent--;
+    _writeLine('};');
+    _indent--;
+    _writeLine('}');
+    _writeLine();
+  }
+
+  /// Generate render tag
+  void _generateRenderTag(RenderTagNode node, String parent) {
+    final snippetVar = _tempVar('snippet');
+    _writeLine('final $snippetVar = ${node.expression};');
+    _writeLine('if ($snippetVar != null) {');
+    _indent++;
+    _writeLine('$snippetVar($parent);');
+    _indent--;
+    _writeLine('}');
   }
 
   /// Generate text node
@@ -391,7 +425,7 @@ class ClientCodeGenerator {
   void _generateComponent(ElementNode node, String parent) {
     final componentVar = _tempVar(node.name.toLowerCase());
     final componentClass = _capitalize(node.name);
-    
+
     // Build props map from attributes
     final propParams = <String>[];
     for (final attr in node.attributes) {
@@ -400,13 +434,18 @@ class ClientCodeGenerator {
         if (attr.value.isEmpty) {
           // Boolean prop (just presence)
           propParams.add('${attr.name}: true');
-        } else if (attr.value.length == 1 && attr.value.first is ExpressionAttributeValue) {
+        } else if (attr.value.length == 1 &&
+            attr.value.first is ExpressionAttributeValue) {
           // Expression value
-          final expr = (attr.value.first as ExpressionAttributeValue).expression;
+          final expr =
+              (attr.value.first as ExpressionAttributeValue).expression;
           propParams.add('${attr.name}: $expr');
         } else if (attr.value.every((v) => v is TextAttributeValue)) {
           // Pure static text
-          final text = attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
+          final text = attr.value
+              .whereType<TextAttributeValue>()
+              .map((v) => v.text)
+              .join();
           propParams.add('${attr.name}: "${_escapeString(text)}"');
         } else {
           // Mixed text and expressions - use string interpolation
@@ -426,7 +465,7 @@ class ClientCodeGenerator {
         continue;
       }
     }
-    
+
     // Create component instance
     if (propParams.isEmpty) {
       _writeLine('final $componentVar = $componentClass();');
@@ -444,7 +483,7 @@ class ClientCodeGenerator {
       _indent--;
       _writeLine(');');
     }
-    
+
     // Mount component (cast parent to HTMLElement if needed)
     _writeLine('$componentVar.mount($parent as HTMLElement);');
   }

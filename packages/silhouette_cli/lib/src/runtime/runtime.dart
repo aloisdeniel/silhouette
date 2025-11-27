@@ -3,8 +3,6 @@
 /// Provides state management primitives similar to Svelte 5 runes
 library;
 
-import 'dart:collection';
-
 /// The current effect being executed (for dependency tracking)
 Effect? _currentEffect;
 
@@ -16,10 +14,10 @@ bool _isBatching = false;
 /// Base class for reactive values
 abstract class Reactive<T> {
   T get value;
-  
+
   /// Notify all subscribers that this value has changed
   void notify();
-  
+
   /// Track this reactive value as a dependency
   void track();
 }
@@ -96,7 +94,7 @@ class Derived<T> implements Reactive<T> {
     // Track new dependencies while computing
     final previousEffect = _currentEffect;
     _currentEffect = _DerivedEffect(this);
-    
+
     try {
       _cachedValue = _compute();
       _dirty = false;
@@ -203,7 +201,7 @@ class Effect {
   void destroy() {
     _cleanup?.call();
     _cleanup = null;
-    
+
     // Remove from all dependencies
     for (final dep in _dependencies) {
       if (dep is State) {
@@ -219,13 +217,13 @@ class Effect {
 /// Run queued effects
 void _flushQueue() {
   if (_isFlushingQueue) return;
-  
+
   _isFlushingQueue = true;
   try {
     while (_effectQueue.isNotEmpty) {
       final effects = _effectQueue.toList();
       _effectQueue.clear();
-      
+
       for (final effect in effects) {
         if (effect._dirty) {
           effect._run();
@@ -278,3 +276,6 @@ T untrack<T>(T Function() fn) {
     _currentEffect = previousEffect;
   }
 }
+
+/// Type definition for Snippets
+typedef Snippet = dynamic;
