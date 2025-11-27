@@ -1,6 +1,8 @@
 <script>
-  final String name = $prop(default: 'World');
-  final int count = $prop(default: 0);
+  final (
+    :String name = 'World',
+    :int count = 0,
+  ) = $props();
   
   var greeting = $derived(() => 'Hello, $name!');
   var displayCount = $derived(() => 'Count: $count');

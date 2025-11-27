@@ -145,11 +145,55 @@ class Analyzer {
     // var name = state(value);
     // var name = derived(() => expr);
     // effect(() { ... });
-    // var props = props();
+    // final (...) = $props();
+
+    // First, check for $props() declarations which can span multiple lines
+    _analyzePropsDeclarations(script.content);
 
     final lines = script.content.split('\n');
     for (final line in lines) {
       _analyzeLine(line.trim());
+    }
+  }
+
+  /// Analyze $props() declarations from the full script content
+  void _analyzePropsDeclarations(String content) {
+    // Detect property declarations with $props() destructuring syntax
+    // Pattern: final (:Type name = defaultValue, :Type name2, ...) = $props();
+    final propsPattern = RegExp(
+      r'final\s+\(\s*([^)]+)\s*\)\s*=\s*\$props\s*\(\s*\)\s*;',
+      multiLine: true,
+      dotAll: true,
+    );
+    
+    final propsMatches = propsPattern.allMatches(content);
+    for (final match in propsMatches) {
+      final propsContent = match.group(1)!;
+      
+      // Parse each property from the record destructuring
+      // Pattern: :Type name or :Type name = defaultValue
+      final propPattern = RegExp(r':([A-Za-z_]\w*(?:<[^>]+>)?)\s+(\w+)(?:\s*=\s*([^,]+))?');
+      final propMatches = propPattern.allMatches(propsContent);
+      
+      for (final propMatch in propMatches) {
+        final type = propMatch.group(1)!;
+        final name = propMatch.group(2)!;
+        var defaultValue = propMatch.group(3)?.trim();
+        
+        // Clean up default value - remove trailing comma
+        if (defaultValue != null && defaultValue.endsWith(',')) {
+          defaultValue = defaultValue.substring(0, defaultValue.length - 1).trim();
+        }
+        
+        final binding = Binding(
+          name: name,
+          kind: BindingKind.prop,
+          initializer: defaultValue,
+          type: type,
+        );
+        _propBindings.add(binding);
+        _currentScope.declare(name, binding);
+      }
     }
   }
 
@@ -191,37 +235,8 @@ class Analyzer {
       return;
     }
 
-    // Detect property declarations with $prop syntax
-    // Pattern: final <type> name = $prop(default: <value>) or final <type> name = $prop()
-    final propMatch = RegExp(r'(?:final|var|late)\s+([A-Za-z_]\w*(?:<[^>]+>)?)\s+(\w+)\s*=\s*\$prop\s*\((.*?)\)').firstMatch(line);
-    if (propMatch != null) {
-      final type = propMatch.group(1)!;
-      final name = propMatch.group(2)!;
-      final args = propMatch.group(3)!.trim();
-      
-      // Extract default value from named parameter
-      String? defaultValue;
-      if (args.isNotEmpty) {
-        final defaultMatch = RegExp(r'default:\s*(.+)').firstMatch(args);
-        if (defaultMatch != null) {
-          defaultValue = defaultMatch.group(1)!.trim();
-          // Remove trailing comma if present
-          if (defaultValue.endsWith(',')) {
-            defaultValue = defaultValue.substring(0, defaultValue.length - 1).trim();
-          }
-        }
-      }
-      
-      final binding = Binding(
-        name: name,
-        kind: BindingKind.prop,
-        initializer: defaultValue,
-        type: type,
-      );
-      _propBindings.add(binding);
-      _currentScope.declare(name, binding);
-      return;
-    }
+    // Note: $props() declarations are now handled in _analyzePropsDeclarations()
+    // which processes the full script content to handle multi-line declarations
 
     // Detect variable declarations with runes (only $state/$derived/$effect)
     final varMatch = RegExp(r'(?:var|final|late)\s+(\w+)\s*=\s*(\$\w+)\((.*)\)').firstMatch(line);

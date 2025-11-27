@@ -1,8 +1,10 @@
 <script>
-  final String username = $prop();
-  final String email = $prop();
-  final int age = $prop(default: 18);
-  final bool isPremium = $prop(default: false);
+  final (
+    :String username,
+    :String email,
+    :int age = 18,
+    :bool isPremium = false,
+  ) = $props();
   
   var displayInfo = $derived(() => '$username ($email)');
   var statusText = $derived(() => isPremium ? 'Premium User' : 'Free User');

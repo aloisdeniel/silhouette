@@ -1,7 +1,9 @@
 <script>
-  final String title = $prop(default: 'Card Title');
-  final String description = $prop(default: 'Card description goes here');
-  final bool highlighted = $prop(default: false);
+  final (
+    :String title = 'Card Title',
+    :String description = 'Card description goes here',
+    :bool highlighted = false,
+  ) = $props();
   
   var cardClass = $derived(() => highlighted ? 'card highlighted' : 'card');
   

@@ -219,20 +219,8 @@ class ClientCodeGenerator {
       }
     }
 
-    // For props: var name = props();
-    final propsPattern = RegExp(
-      r'(?:var|final|late)\s+(\w+)\s*=\s*props\s*\(\s*\)\s*;',
-      multiLine: true,
-    );
-
-    final propsMatches = propsPattern.allMatches(content);
-    for (final match in propsMatches) {
-      final varName = match.group(1)!;
-      _writeLine('_$varName = props();');
-    }
-
-    // Note: $prop() declarations are not initialized here as they are
-    // handled as constructor parameters
+    // Note: $props() declarations are not initialized here as they are
+    // handled as constructor parameters via destructuring
   }
 
   /// Generate script effects

@@ -1,11 +1,10 @@
 <script>
-  // Required properties
-  final String title = $prop();
-  
-  // Optional properties with defaults
-  final String subtitle = $prop(default: 'No subtitle');
-  final int maxItems = $prop(default: 10);
-  final bool showHeader = $prop(default: true);
+  final (
+    :String title,
+    :String subtitle = 'No subtitle',
+    :int maxItems = 10,
+    :bool showHeader = true,
+  ) = $props();
   
   // Derived values using props
   var headerText = $derived(() => showHeader ? title : '');
