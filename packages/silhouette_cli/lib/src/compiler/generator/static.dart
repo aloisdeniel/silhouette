@@ -19,12 +19,13 @@ class StaticCodeGenerator {
   String generate() {
     _output.clear();
 
-    // Generate user imports
+    // Generate user imports (replace .client.g.dart with .static.g.dart)
     for (final import in analysis.imports) {
+      final uri = import.uri.replaceAll('.client.g.dart', '.static.g.dart');
       if (import.alias != null) {
-        _writeLine("import '${import.uri}' as ${import.alias};");
+        _writeLine("import '$uri' as ${import.alias};");
       } else {
-        _writeLine("import '${import.uri}';");
+        _writeLine("import '$uri';");
       }
     }
     if (analysis.imports.isNotEmpty) {
@@ -36,8 +37,11 @@ class StaticCodeGenerator {
     _writeLine('class $className {');
     _indent++;
 
-    // Generate property fields (only props are supported)
+    // Generate property fields (props and state)
     _generatePropertyFields();
+
+    // Generate state fields
+    _generateStateFields();
 
     // Generate derived fields
     _generateDerivedFields();
@@ -66,6 +70,16 @@ class StaticCodeGenerator {
     }
   }
 
+  /// Generate state fields (treated as props in static mode)
+  void _generateStateFields() {
+    for (final binding in analysis.stateBindings) {
+      _writeLine('final dynamic ${binding.name};');
+    }
+    if (analysis.stateBindings.isNotEmpty) {
+      _writeLine();
+    }
+  }
+
   /// Generate derived fields
   void _generateDerivedFields() {
     for (final binding in analysis.derivedBindings) {
@@ -78,12 +92,17 @@ class StaticCodeGenerator {
 
   /// Generate constructor
   void _generateConstructor(String className) {
-    // Generate constructor with named parameters for properties
+    // Generate constructor with named parameters for properties and state
     final hasProps = analysis.propBindings.isNotEmpty;
+    final hasState = analysis.stateBindings.isNotEmpty;
+    final hasParams = hasProps || hasState;
     final hasDerived = analysis.derivedBindings.isNotEmpty;
 
-    if (hasProps) {
+    if (hasParams) {
       _write('$className({');
+      
+      // Add prop parameters
+      var paramIndex = 0;
       for (var i = 0; i < analysis.propBindings.length; i++) {
         final binding = analysis.propBindings[i];
         if (binding.initializer != null) {
@@ -91,10 +110,23 @@ class StaticCodeGenerator {
         } else {
           _write('required this.${binding.name}');
         }
-        if (i < analysis.propBindings.length - 1) {
+        paramIndex++;
+        if (paramIndex < analysis.propBindings.length + analysis.stateBindings.length) {
           _write(', ');
         }
       }
+      
+      // Add state parameters (treated as props with default values)
+      for (var i = 0; i < analysis.stateBindings.length; i++) {
+        final binding = analysis.stateBindings[i];
+        final defaultValue = binding.initializer ?? '0';
+        _write('this.${binding.name} = $defaultValue');
+        paramIndex++;
+        if (paramIndex < analysis.propBindings.length + analysis.stateBindings.length) {
+          _write(', ');
+        }
+      }
+      
       _write('})');
       
       if (hasDerived) {

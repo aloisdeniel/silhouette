@@ -1,11 +1,14 @@
-import 'card.client.g.dart';
-import 'button.client.g.dart';
+import 'card.static.g.dart';
+import 'button.static.g.dart';
 
 class ComponentsShowcase {
+  final dynamic counter;
+  final dynamic selectedCard;
+
   late final dynamic counterText;
   late final dynamic hasClicked;
 
-  ComponentsShowcase() {
+  ComponentsShowcase({this.counter = 0, this.selectedCard = 0}) {
     counterText = 'Counter: $counter';
     hasClicked = counter > 0;
   }

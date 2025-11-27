@@ -4,11 +4,13 @@ class PropsDemo {
   final int maxItems;
   final bool showHeader;
 
+  final dynamic currentCount;
+
   late final dynamic headerText;
   late final dynamic itemLimit;
   late final dynamic isOverLimit;
 
-  PropsDemo({required this.title, this.subtitle = 'No subtitle', this.maxItems = 10, this.showHeader = true}) {
+  PropsDemo({required this.title, this.subtitle = 'No subtitle', this.maxItems = 10, this.showHeader = true, this.currentCount = 0}) {
     headerText = showHeader ? title : '';
     itemLimit = 'Showing up to $maxItems items';
     isOverLimit = currentCount > maxItems;

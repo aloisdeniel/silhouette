@@ -1,7 +1,10 @@
-import 'button.client.g.dart';
+import 'button.static.g.dart';
 
 class App {
-  App();
+  final dynamic count;
+  final dynamic message;
+
+  App({this.count = 0, this.message = ''});
 
   void build(StringBuffer buffer) {
     buffer.write("<div");

@@ -1,7 +1,10 @@
-import 'card.client.g.dart';
+import 'card.static.g.dart';
 
 class Dashboard {
-  Dashboard();
+  final dynamic items;
+  final dynamic selectedIndex;
+
+  Dashboard({this.items = ['Task 1: Review pull requests', 'Task 2: Update documentation', 'Task 3: Fix bug in login flow'], this.selectedIndex = -1});
 
   void build(StringBuffer buffer) {
     buffer.write("<div");
