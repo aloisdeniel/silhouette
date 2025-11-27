@@ -1,5 +1,5 @@
 class Greetings {
-  static const String componentId = 'silhouette-greetings-365307';
+  static const String componentId = 'silhouette-greetings-207724';
 
   final String name;
   final int count;
@@ -12,8 +12,8 @@ class Greetings {
     displayCount = 'Count: $count';
   }
 
-  void build(StringBuffer buffer) {
-    buffer.write("<div class=\"silhouette-greetings-365307\"><h1>");
+  void html(StringBuffer buffer) {
+    buffer.write("<div class=\"silhouette-greetings-207724\"><h1>");
     buffer.write(greeting);
     buffer.write("</h1><p>");
     buffer.write(displayCount);
@@ -23,8 +23,7 @@ class Greetings {
   }
 
   static void style(StringBuffer buffer) {
-    buffer.write(
-      " div.silhouette-greetings-365307 { \n    padding: 20px;\n    font-family: Arial, sans-serif;\n  }",
-    );
+    buffer.write(".silhouette-greetings-207724 div { \n    padding: 20px;\n    font-family: Arial, sans-serif;\n  }");
   }
 }
+

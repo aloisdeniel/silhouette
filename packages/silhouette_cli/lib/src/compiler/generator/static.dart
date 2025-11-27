@@ -58,8 +58,8 @@ class StaticCodeGenerator {
     // Generate constructor
     _generateConstructor(className);
 
-    // Generate build method
-    _generateBuildMethod();
+    // Generate html method
+    _generateHtmlMethod();
 
     // Generate style method
     _generateStyleMethod();
@@ -261,9 +261,9 @@ class StaticCodeGenerator {
     }
   }
 
-  /// Generate build method
-  void _generateBuildMethod() {
-    _writeLine('void build(StringBuffer buffer) {');
+  /// Generate html method
+  void _generateHtmlMethod() {
+    _writeLine('void html(StringBuffer buffer) {');
     _indent++;
 
     // Set component ID on all template nodes
@@ -307,31 +307,31 @@ class StaticCodeGenerator {
       r'([^{}]+)\s*\{([^{}]*)\}',
       multiLine: true,
     );
-    
+
     final scopedCss = StringBuffer();
     var lastEnd = 0;
-    
+
     for (final match in rulePattern.allMatches(cssContent)) {
       // Add any content between rules (comments, etc.)
       scopedCss.write(cssContent.substring(lastEnd, match.start));
-      
+
       final selectors = match.group(1)!;
       final properties = match.group(2)!;
-      
+
       // Scope the selectors
       final scopedSelectors = _scopeSelectors(selectors);
-      
+
       // Write the scoped rule
       scopedCss.write('$scopedSelectors { $properties}');
-      
+
       lastEnd = match.end;
     }
-    
+
     // Add any remaining content
     if (lastEnd < cssContent.length) {
       scopedCss.write(cssContent.substring(lastEnd));
     }
-    
+
     return scopedCss.toString();
   }
 
@@ -346,16 +346,16 @@ class StaticCodeGenerator {
   /// Scope a single selector by prepending the componentId class
   String _scopeSingleSelector(String selector) {
     selector = selector.trim();
-    
+
     // Skip special selectors
-    if (selector.startsWith(':root') || 
+    if (selector.startsWith(':root') ||
         selector.startsWith('@') ||
         selector.isEmpty) {
       return selector;
     }
-    
-    // Prepend the componentId class as a descendant selector
-    return '.$componentId $selector';
+
+    // Append the componentId class to the descendant selector
+    return '$selector.\$componentId';
   }
 
   /// Set component ID on all template nodes
@@ -518,12 +518,12 @@ class StaticCodeGenerator {
           .whereType<RegularAttribute>()
           .where((attr) => attr.name == 'class')
           .firstOrNull;
-      
+
       if (existingClassAttr != null) {
         // We'll handle this when generating the class attribute
       } else {
         // No existing class attribute, add one with just the componentId
-        _emitStatic(' class="$componentId"');
+        _emitStatic(' class="\$componentId"');
       }
     }
 
@@ -586,7 +586,7 @@ class StaticCodeGenerator {
 
     // Create component instance and render
     if (propParams.isEmpty) {
-      _writeLine('$componentClass().build(buffer);');
+      _writeLine('$componentClass().html(buffer);');
     } else {
       _write('$componentClass(');
       for (var i = 0; i < propParams.length; i++) {
@@ -596,7 +596,7 @@ class StaticCodeGenerator {
           _write(', ');
         }
       }
-      _write(').build(buffer);');
+      _write(').html(buffer);');
       _output.writeln();
     }
   }
@@ -621,7 +621,8 @@ class StaticCodeGenerator {
   }
 
   /// Generate regular attribute
-  void _generateRegularAttribute(RegularAttribute attr, {bool isRootNode = false}) {
+  void _generateRegularAttribute(RegularAttribute attr,
+      {bool isRootNode = false}) {
     if (attr.value.isEmpty) {
       _emitStatic(' ${attr.name}');
       return;
@@ -634,8 +635,8 @@ class StaticCodeGenerator {
     if (isRootNode && attr.name == 'class') {
       if (hasExpression) {
         // Build attribute value from mixed content, prepending componentId
-        _emitStatic(' class="$componentId ');
-        
+        _emitStatic(' class="\$componentId ');
+
         for (final value in attr.value) {
           if (value is TextAttributeValue) {
             _emitStatic(value.text);
@@ -643,12 +644,15 @@ class StaticCodeGenerator {
             _emitExpression(value.expression);
           }
         }
-        
+
         _emitStatic('"');
       } else {
         // Static class attribute
-        final text = attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
-        _emitStatic(' class="$componentId $text"');
+        final text = attr.value
+            .whereType<TextAttributeValue>()
+            .map((v) => v.text)
+            .join();
+        _emitStatic(' class="\$componentId $text"');
       }
       return;
     }
@@ -755,5 +759,3 @@ class StaticCodeGenerator {
     }
   }
 }
-
-

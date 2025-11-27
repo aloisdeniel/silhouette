@@ -1,5 +1,5 @@
 class UserCard {
-  static const String componentId = 'silhouette-usercard-542940';
+  static const String componentId = 'silhouette-usercard-388665';
 
   final String username;
   final String email;
@@ -14,8 +14,8 @@ class UserCard {
     statusText = isPremium ? 'Premium User' : 'Free User';
   }
 
-  void build(StringBuffer buffer) {
-    buffer.write("<div class=\"silhouette-usercard-542940 user-card\"><h2>");
+  void html(StringBuffer buffer) {
+    buffer.write("<div class=\"$componentId user-card\"><h2>");
     buffer.write(username);
     buffer.write("</h2><p>Email: ");
     buffer.write(email);
@@ -31,7 +31,7 @@ class UserCard {
   }
 
   static void style(StringBuffer buffer) {
-    buffer.write(".silhouette-usercard-542940 .user-card { \n    padding: 20px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n  }.silhouette-usercard-542940 .premium-badge { \n    background: gold;\n    padding: 5px 10px;\n    border-radius: 4px;\n    display: inline-block;\n  }");
+    buffer.write(".user-card.$componentId { \n    padding: 20px;\n    border: 1px solid #ddd;\n    border-radius: 8px;\n  }.premium-badge.$componentId { \n    background: gold;\n    padding: 5px 10px;\n    border-radius: 4px;\n    display: inline-block;\n  }");
   }
 }
 

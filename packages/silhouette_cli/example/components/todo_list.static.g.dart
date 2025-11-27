@@ -1,7 +1,7 @@
 import 'todo.dart';
 
 class TodoList {
-  static const String componentId = 'silhouette-todolist-377381';
+  static const String componentId = 'silhouette-todolist-011356';
 
   final List<Todo> todos;
   final String newTodo;
@@ -13,8 +13,8 @@ class TodoList {
     filteredTodos = todos.where((t) => !t.completed).toList();
   }
 
-  void build(StringBuffer buffer) {
-    buffer.write("<div class=\"silhouette-todolist-377381 todo-app\"><h1>Todo List</h1><div class=\"input-group\"><input type=\"text\" placeholder=\"What needs to be done?\"></input><button>Add</button></div><div class=\"filters\"><button>All</button><button>Active</button><button>Completed</button></div>");
+  void html(StringBuffer buffer) {
+    buffer.write("<div class=\"$componentId todo-app\"><h1>Todo List</h1><div class=\"input-group\"><input type=\"text\" placeholder=\"What needs to be done?\"></input><button>Add</button></div><div class=\"filters\"><button>All</button><button>Active</button><button>Completed</button></div>");
     if (filteredTodos.length > 0) {
       buffer.write("<ul>");
       for (var index = 0; index < filteredTodos.length; index++) {
@@ -36,7 +36,7 @@ class TodoList {
   }
 
   static void style(StringBuffer buffer) {
-    buffer.write(".silhouette-todolist-377381 .todo-app { \n    max-width: 600px;\n    margin: 0 auto;\n    padding: 20px;\n  }.silhouette-todolist-377381 .input-group { \n    display: flex;\n    gap: 10px;\n    margin-bottom: 20px;\n  }.silhouette-todolist-377381 .input-group input { \n    flex: 1;\n    padding: 10px;\n  }.silhouette-todolist-377381 .filters { \n    margin-bottom: 20px;\n  }.silhouette-todolist-377381 .filters button { \n    margin-right: 10px;\n  }.silhouette-todolist-377381 ul { \n    list-style: none;\n    padding: 0;\n  }.silhouette-todolist-377381 li { \n    display: flex;\n    align-items: center;\n    gap: 10px;\n    padding: 10px;\n    border-bottom: 1px solid #ccc;\n  }.silhouette-todolist-377381 li.completed span { \n    text-decoration: line-through;\n    color: #888;\n  }");
+    buffer.write(".todo-app.$componentId { \n    max-width: 600px;\n    margin: 0 auto;\n    padding: 20px;\n  }.input-group.$componentId { \n    display: flex;\n    gap: 10px;\n    margin-bottom: 20px;\n  }.input-group input.$componentId { \n    flex: 1;\n    padding: 10px;\n  }.filters.$componentId { \n    margin-bottom: 20px;\n  }.filters button.$componentId { \n    margin-right: 10px;\n  }ul.$componentId { \n    list-style: none;\n    padding: 0;\n  }li.$componentId { \n    display: flex;\n    align-items: center;\n    gap: 10px;\n    padding: 10px;\n    border-bottom: 1px solid #ccc;\n  }li.completed span.$componentId { \n    text-decoration: line-through;\n    color: #888;\n  }");
   }
 }
 

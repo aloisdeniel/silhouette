@@ -1,5 +1,5 @@
 class PropsDemo {
-  static const String componentId = 'silhouette-propsdemo-559116';
+  static const String componentId = 'silhouette-propsdemo-890487';
 
   final String title;
   final String subtitle;
@@ -18,8 +18,8 @@ class PropsDemo {
     isOverLimit = currentCount > maxItems;
   }
 
-  void build(StringBuffer buffer) {
-    buffer.write("<div class=\"silhouette-propsdemo-559116 props-demo\">");
+  void html(StringBuffer buffer) {
+    buffer.write("<div class=\"$componentId props-demo\">");
     if (showHeader) {
       buffer.write("<div class=\"header\"><h1>");
       buffer.write(title);
@@ -39,7 +39,7 @@ class PropsDemo {
   }
 
   static void style(StringBuffer buffer) {
-    buffer.write(".silhouette-propsdemo-559116 .props-demo { \n    padding: 20px;\n    max-width: 600px;\n  }.silhouette-propsdemo-559116 .header { \n    border-bottom: 2px solid #333;\n    margin-bottom: 20px;\n  }.silhouette-propsdemo-559116 .warning { \n    color: red;\n    font-weight: bold;\n  }");
+    buffer.write(".props-demo.$componentId { \n    padding: 20px;\n    max-width: 600px;\n  }.header.$componentId { \n    border-bottom: 2px solid #333;\n    margin-bottom: 20px;\n  }.warning.$componentId { \n    color: red;\n    font-weight: bold;\n  }");
   }
 }
 

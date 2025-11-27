@@ -1,5 +1,5 @@
 class Card {
-  static const String componentId = 'silhouette-card-383274';
+  static const String componentId = 'silhouette-card-717706';
 
   final String title;
   final String description;
@@ -11,8 +11,8 @@ class Card {
     cardClass = highlighted ? 'card highlighted' : 'card';
   }
 
-  void build(StringBuffer buffer) {
-    buffer.write("<div class=\"silhouette-card-383274 ");
+  void html(StringBuffer buffer) {
+    buffer.write("<div class=\"$componentId ");
     buffer.write(cardClass);
     buffer.write("\"><h3>");
     buffer.write(title);
@@ -22,7 +22,7 @@ class Card {
   }
 
   static void style(StringBuffer buffer) {
-    buffer.write(".silhouette-card-383274 .card { \n    border: 1px solid #ddd;\n    border-radius: 8px;\n    padding: 20px;\n    margin: 10px 0;\n    background: white;\n    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  }.silhouette-card-383274 .card.highlighted { \n    border-color: #007bff;\n    box-shadow: 0 4px 8px rgba(0,123,255,0.2);\n  }.silhouette-card-383274 .card h3 { \n    margin-top: 0;\n    color: #333;\n  }.silhouette-card-383274 .card p { \n    color: #666;\n    margin-bottom: 0;\n  }");
+    buffer.write(".card.$componentId { \n    border: 1px solid #ddd;\n    border-radius: 8px;\n    padding: 20px;\n    margin: 10px 0;\n    background: white;\n    box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  }.card.highlighted.$componentId { \n    border-color: #007bff;\n    box-shadow: 0 4px 8px rgba(0,123,255,0.2);\n  }.card h3.$componentId { \n    margin-top: 0;\n    color: #333;\n  }.card p.$componentId { \n    color: #666;\n    margin-bottom: 0;\n  }");
   }
 }
 

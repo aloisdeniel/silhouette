@@ -1,3 +1,4 @@
+import 'package:example_app/app.dart';
 import 'package:example_app/components/greetings.static.g.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
@@ -15,7 +16,19 @@ Response _router(Request request) {
   if (request.url.path == 'styles.css') {
     return _handleStylesCss(request);
   } else if (request.url.path == 'index.html' || request.url.path == '') {
-    return _handleIndexHtml(request);
+    return Response.ok(
+      headers: {'content-type': 'text/css'},
+      App().render(
+        Greetings(
+          name: request.requestedUri.queryParameters['name'] ?? 'Unknown',
+          count:
+              int.tryParse(
+                request.requestedUri.queryParameters['count'] ?? '0',
+              ) ??
+              0,
+        ).html,
+      ),
+    );
   }
   return Response.notFound('Not found');
 }
@@ -24,27 +37,4 @@ Response _handleStylesCss(Request request) {
   final buffer = StringBuffer();
   Greetings.style(buffer);
   return Response.ok(buffer.toString(), headers: {'content-type': 'text/css'});
-}
-
-Response _handleIndexHtml(Request request) {
-  final html = StringBuffer('''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Example App</title>
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>''');
-  Greetings(
-    name: request.requestedUri.queryParameters['name'] ?? 'Unknown',
-    count:
-        int.tryParse(request.requestedUri.queryParameters['count'] ?? '0') ?? 0,
-  ).build(html);
-  html.write('''
-</body>
-</html>
-''');
-  return Response.ok(html.toString(), headers: {'content-type': 'text/html'});
 }
