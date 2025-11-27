@@ -3,6 +3,10 @@
 /// Analyzes the AST to detect runes, build scope tree, and track dependencies
 library;
 
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart' as dart_ast;
+import 'package:analyzer/dart/ast/visitor.dart';
+
 import 'ast.dart';
 
 /// Types of runes
@@ -140,17 +144,46 @@ class Analyzer {
 
   /// Analyze a script block
   void _analyzeScript(ScriptNode script) {
-    // Simple Dart code analysis
-    // We look for rune patterns like:
-    // var name = state(value);
-    // var name = derived(() => expr);
-    // effect(() { ... });
-    // final (...) = $props();
+    // Preprocess the script to make it parseable by the Dart analyzer
+    // Replace runes with valid function calls
+    final preprocessedContent = _preprocessScript(script.content);
+    
+    // Use the Dart analyzer to parse the script content
+    try {
+      final parseResult = parseString(content: preprocessedContent);
+      
+      // Check for parse errors
+      if (parseResult.errors.isEmpty) {
+        final unit = parseResult.unit;
+        
+        // Visit the AST to extract bindings, imports, etc.
+        final visitor = _ScriptVisitor(this);
+        unit.visitChildren(visitor);
+      } else {
+        // If there are parse errors, fall back to regex-based analysis
+        _fallbackAnalyzeScript(script.content);
+      }
+    } catch (e) {
+      // If parsing fails, fall back to basic analysis
+      _fallbackAnalyzeScript(script.content);
+    }
+  }
 
-    // First, check for $props() declarations which can span multiple lines
-    _analyzePropsDeclarations(script.content);
+  /// Preprocess script to make it valid Dart for the analyzer
+  String _preprocessScript(String content) {
+    // Replace $state, $derived, $effect with valid identifiers
+    // This allows the Dart analyzer to parse the structure
+    return content
+        .replaceAll(r'$state', r'_rune_state')
+        .replaceAll(r'$derived', r'_rune_derived')
+        .replaceAll(r'$effect', r'_rune_effect')
+        .replaceAll(r'$props', r'_rune_props');
+  }
 
-    final lines = script.content.split('\n');
+  /// Fallback script analysis using regex (for error recovery)
+  void _fallbackAnalyzeScript(String content) {
+    _analyzePropsDeclarations(content);
+    final lines = content.split('\n');
     for (final line in lines) {
       _analyzeLine(line.trim());
     }
@@ -495,5 +528,199 @@ class Analyzer {
   String _capitalize(String str) {
     if (str.isEmpty) return str;
     return str[0].toUpperCase() + str.substring(1);
+  }
+}
+
+/// Visitor for analyzing Dart script AST
+class _ScriptVisitor extends RecursiveAstVisitor<void> {
+  final Analyzer analyzer;
+
+  _ScriptVisitor(this.analyzer);
+
+  @override
+  void visitImportDirective(dart_ast.ImportDirective node) {
+    final uri = node.uri.stringValue;
+    if (uri != null) {
+      final alias = node.prefix?.name;
+      
+      analyzer._imports.add(ImportDeclaration(
+        uri: uri,
+        alias: alias,
+      ));
+      
+      // If there's an alias, add it to scope
+      if (alias != null) {
+        analyzer._currentScope.declare(alias, Binding(
+          name: alias,
+          kind: BindingKind.normal,
+        ));
+      }
+      
+      // Extract component name from path
+      final fileName = uri.split('/').last;
+      if (fileName.endsWith('.g.dart')) {
+        final componentName = analyzer._capitalize(fileName.replaceAll('.g.dart', ''));
+        analyzer._currentScope.declare(componentName, Binding(
+          name: componentName,
+          kind: BindingKind.normal,
+        ));
+      }
+    }
+    super.visitImportDirective(node);
+  }
+
+  @override
+  void visitVariableDeclaration(dart_ast.VariableDeclaration node) {
+    final name = node.name.lexeme;
+    final initializer = node.initializer;
+    
+    if (initializer != null) {
+      // Check if this is a rune call
+      if (initializer is dart_ast.MethodInvocation) {
+        final methodName = initializer.methodName.name;
+        final runeType = _detectRuneType(methodName);
+        
+        if (runeType != null) {
+          // Get the type annotation from the parent VariableDeclarationList
+          String? type;
+          final parent = node.parent;
+          if (parent is dart_ast.VariableDeclarationList && parent.type != null) {
+            type = parent.type.toString();
+          }
+          
+          // Get the initializer value
+          final args = initializer.argumentList.arguments;
+          String? initValue;
+          if (args.isNotEmpty) {
+            initValue = args.first.toString();
+          }
+          
+          final binding = analyzer._createBindingForRune(
+            name,
+            runeType,
+            initValue ?? '',
+            type,
+          );
+          analyzer._currentScope.declare(name, binding);
+          
+          // Track identifier references in the initializer
+          _extractIdentifiersFromExpression(initializer);
+          
+          super.visitVariableDeclaration(node);
+          return;
+        }
+      }
+      
+      // Check for $props() pattern binding
+      if (initializer is dart_ast.MethodInvocation &&
+          initializer.methodName.name == r'$props') {
+        _handlePropsDeclaration(node, initializer);
+        super.visitVariableDeclaration(node);
+        return;
+      }
+    }
+    
+    // Regular variable declaration
+    String? type;
+    final parent = node.parent;
+    if (parent is dart_ast.VariableDeclarationList && parent.type != null) {
+      type = parent.type.toString();
+    }
+    
+    analyzer._currentScope.declare(name, Binding(
+      name: name,
+      kind: BindingKind.normal,
+      initializer: initializer?.toString(),
+      type: type,
+    ));
+    
+    super.visitVariableDeclaration(node);
+  }
+
+  @override
+  void visitMethodInvocation(dart_ast.MethodInvocation node) {
+    // Handle standalone $effect calls
+    if (node.methodName.name == r'$effect') {
+      _extractIdentifiersFromExpression(node);
+    }
+    
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitAssignmentExpression(dart_ast.AssignmentExpression node) {
+    final leftSide = node.leftHandSide;
+    if (leftSide is dart_ast.SimpleIdentifier) {
+      final name = leftSide.name;
+      final binding = analyzer._currentScope.lookup(name);
+      if (binding != null) {
+        binding.reassigned = true;
+        binding.assignments.add(node.rightHandSide.toString());
+      }
+    }
+    
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(dart_ast.FunctionDeclaration node) {
+    final name = node.name.lexeme;
+    analyzer._currentScope.declare(name, Binding(
+      name: name,
+      kind: BindingKind.normal,
+    ));
+    
+    super.visitFunctionDeclaration(node);
+  }
+
+  /// Handle $props() pattern binding declarations
+  void _handlePropsDeclaration(
+    dart_ast.VariableDeclaration node,
+    dart_ast.MethodInvocation propsCall,
+  ) {
+    // For $props(), we need to parse the pattern from the source text
+    // because the AST structure for record patterns is complex
+    // Fall back to regex parsing for $props() declarations
+    final sourceText = node.toSource();
+    
+    // Use the existing regex-based props analyzer
+    analyzer._analyzePropsDeclarations(sourceText);
+  }
+
+  /// Extract identifiers from an expression and track dependencies
+  void _extractIdentifiersFromExpression(dart_ast.Expression expr) {
+    final identifierVisitor = _IdentifierVisitor(analyzer);
+    expr.visitChildren(identifierVisitor);
+  }
+
+  /// Detect rune type from function name
+  RuneType? _detectRuneType(String name) {
+    return switch (name) {
+      r'$state' => RuneType.state,
+      r'$derived' => RuneType.derived,
+      r'$effect' => RuneType.effect,
+      r'$props' => RuneType.props,
+      _ => null,
+    };
+  }
+}
+
+/// Visitor for extracting identifier references
+class _IdentifierVisitor extends RecursiveAstVisitor<void> {
+  final Analyzer analyzer;
+
+  _IdentifierVisitor(this.analyzer);
+
+  @override
+  void visitSimpleIdentifier(dart_ast.SimpleIdentifier node) {
+    final identifier = node.name;
+    if (!analyzer._isKeyword(identifier)) {
+      final binding = analyzer._currentScope.lookup(identifier);
+      if (binding != null) {
+        binding.references.add(node.toString());
+        analyzer._dependencies.add(identifier);
+      }
+    }
+    super.visitSimpleIdentifier(node);
   }
 }
