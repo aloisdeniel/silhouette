@@ -12,76 +12,23 @@ class TodoList {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div");
-    buffer.write(" class=\"todo-app\"");
-    buffer.write(">");
-    buffer.write("<h1");
-    buffer.write(">");
-    buffer.write("Todo List");
-    buffer.write("</h1>");
-    buffer.write("<div");
-    buffer.write(" class=\"input-group\"");
-    buffer.write(">");
-    buffer.write("<input");
-    buffer.write(" type=\"text\"");
-    buffer.write(" placeholder=\"What needs to be done?\"");
-    buffer.write(">");
-    buffer.write("</input>");
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("Add");
-    buffer.write("</button>");
-    buffer.write("</div>");
-    buffer.write("<div");
-    buffer.write(" class=\"filters\"");
-    buffer.write(">");
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("All");
-    buffer.write("</button>");
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("Active");
-    buffer.write("</button>");
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("Completed");
-    buffer.write("</button>");
-    buffer.write("</div>");
+    buffer.write("<div class=\"todo-app\"><h1>Todo List</h1><div class=\"input-group\"><input type=\"text\" placeholder=\"What needs to be done?\"></input><button>Add</button></div><div class=\"filters\"><button>All</button><button>Active</button><button>Completed</button></div>");
     if (filteredTodos.length > 0) {
-      buffer.write("<ul");
-      buffer.write(">");
+      buffer.write("<ul>");
       for (var index = 0; index < filteredTodos.length; index++) {
         final todo = filteredTodos[index];
-        buffer.write("<li");
-        buffer.write(" class=\"");
+        buffer.write("<li class=\"");
         buffer.write(todo.completed ? 'completed' : '');
-        buffer.write("\"");
-        buffer.write(">");
-        buffer.write("<input");
-        buffer.write(" type=\"checkbox\"");
-        buffer.write(" checked=\"");
+        buffer.write("\"><input type=\"checkbox\" checked=\"");
         buffer.write(todo.completed);
-        buffer.write("\"");
-        buffer.write(">");
-        buffer.write("</input>");
-        buffer.write("<span");
-        buffer.write(">");
+        buffer.write("\"></input><span>");
         buffer.write(todo.text);
-        buffer.write("</span>");
-        buffer.write("<button");
-        buffer.write(">");
-        buffer.write("Delete");
-        buffer.write("</button>");
-        buffer.write("</li>");
+        buffer.write("</span><button>Delete</button></li>");
       }
       buffer.write("</ul>");
     }
     else {
-      buffer.write("<p");
-      buffer.write(">");
-      buffer.write("No todos yet!");
-      buffer.write("</p>");
+      buffer.write("<p>No todos yet!</p>");
     }
     buffer.write("</div>");
   }

@@ -10,20 +10,13 @@ class Card {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div");
-    buffer.write(" class=\"");
+    buffer.write("<div class=\"");
     buffer.write(cardClass);
-    buffer.write("\"");
-    buffer.write(">");
-    buffer.write("<h3");
-    buffer.write(">");
+    buffer.write("\"><h3>");
     buffer.write(title);
-    buffer.write("</h3>");
-    buffer.write("<p");
-    buffer.write(">");
+    buffer.write("</h3><p>");
     buffer.write(description);
-    buffer.write("</p>");
-    buffer.write("</div>");
+    buffer.write("</p></div>");
   }
 }
 

@@ -8,41 +8,16 @@ class Counter {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div");
-    buffer.write(">");
-    buffer.write("<h1");
-    buffer.write(">");
-    buffer.write("Counter Example");
-    buffer.write("</h1>");
-    buffer.write("<p");
-    buffer.write(">");
-    buffer.write("Count: ");
+    buffer.write("<div><h1>Counter Example</h1><p>Count: ");
     buffer.write(count);
-    buffer.write("</p>");
-    buffer.write("<p");
-    buffer.write(">");
-    buffer.write("Double: ");
+    buffer.write("</p><p>Double: ");
     buffer.write(double);
-    buffer.write("</p>");
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("Increment");
-    buffer.write("</button>");
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("Decrement");
-    buffer.write("</button>");
+    buffer.write("</p><button>Increment</button><button>Decrement</button>");
     if (count > 10) {
-      buffer.write("<p");
-      buffer.write(">");
-      buffer.write("Count is greater than 10!");
-      buffer.write("</p>");
+      buffer.write("<p>Count is greater than 10!</p>");
     }
     else {
-      buffer.write("<p");
-      buffer.write(">");
-      buffer.write("Count is 10 or less");
-      buffer.write("</p>");
+      buffer.write("<p>Count is 10 or less</p>");
     }
     buffer.write("</div>");
   }

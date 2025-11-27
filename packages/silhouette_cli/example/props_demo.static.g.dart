@@ -17,48 +17,23 @@ class PropsDemo {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div");
-    buffer.write(" class=\"props-demo\"");
-    buffer.write(">");
+    buffer.write("<div class=\"props-demo\">");
     if (showHeader) {
-      buffer.write("<div");
-      buffer.write(" class=\"header\"");
-      buffer.write(">");
-      buffer.write("<h1");
-      buffer.write(">");
+      buffer.write("<div class=\"header\"><h1>");
       buffer.write(title);
-      buffer.write("</h1>");
-      buffer.write("<h2");
-      buffer.write(">");
+      buffer.write("</h1><h2>");
       buffer.write(subtitle);
-      buffer.write("</h2>");
-      buffer.write("</div>");
+      buffer.write("</h2></div>");
     }
-    buffer.write("<div");
-    buffer.write(" class=\"content\"");
-    buffer.write(">");
-    buffer.write("<p");
-    buffer.write(">");
+    buffer.write("<div class=\"content\"><p>");
     buffer.write(itemLimit);
-    buffer.write("</p>");
-    buffer.write("<p");
-    buffer.write(">");
-    buffer.write("Current count: ");
+    buffer.write("</p><p>Current count: ");
     buffer.write(currentCount);
     buffer.write("</p>");
     if (isOverLimit) {
-      buffer.write("<p");
-      buffer.write(" class=\"warning\"");
-      buffer.write(">");
-      buffer.write("Warning: Over the limit!");
-      buffer.write("</p>");
+      buffer.write("<p class=\"warning\">Warning: Over the limit!</p>");
     }
-    buffer.write("<button");
-    buffer.write(">");
-    buffer.write("Add Item");
-    buffer.write("</button>");
-    buffer.write("</div>");
-    buffer.write("</div>");
+    buffer.write("<button>Add Item</button></div></div>");
   }
 }
 

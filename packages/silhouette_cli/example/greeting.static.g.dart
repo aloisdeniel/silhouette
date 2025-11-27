@@ -11,22 +11,13 @@ class Greeting {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div");
-    buffer.write(">");
-    buffer.write("<h1");
-    buffer.write(">");
+    buffer.write("<div><h1>");
     buffer.write(greeting);
-    buffer.write("</h1>");
-    buffer.write("<p");
-    buffer.write(">");
+    buffer.write("</h1><p>");
     buffer.write(displayCount);
-    buffer.write("</p>");
-    buffer.write("<p");
-    buffer.write(">");
-    buffer.write("Name is ");
+    buffer.write("</p><p>Name is ");
     buffer.write(name);
-    buffer.write("</p>");
-    buffer.write("</div>");
+    buffer.write("</p></div>");
   }
 }
 

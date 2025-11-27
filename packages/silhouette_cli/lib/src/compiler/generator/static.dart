@@ -11,6 +11,7 @@ class StaticCodeGenerator {
   final AnalysisResult analysis;
   final String componentName;
   final StringBuffer _output = StringBuffer();
+  final StringBuffer _pendingHtml = StringBuffer();
   int _indent = 0;
 
   StaticCodeGenerator(this.ast, this.analysis, {this.componentName = 'Component'});
@@ -58,6 +59,25 @@ class StaticCodeGenerator {
     _writeLine();
 
     return _output.toString();
+  }
+
+  /// Write pending HTML to buffer
+  void _flushHtml() {
+    if (_pendingHtml.isNotEmpty) {
+      _writeLine('buffer.write("${_escapeString(_pendingHtml.toString())}");');
+      _pendingHtml.clear();
+    }
+  }
+
+  /// Add static HTML to pending buffer
+  void _emitStatic(String html) {
+    _pendingHtml.write(html);
+  }
+
+  /// Write expression to buffer (flushes pending HTML first)
+  void _emitExpression(String expression) {
+    _flushHtml();
+    _writeLine('buffer.write($expression);');
   }
 
   /// Generate property fields
@@ -245,6 +265,7 @@ class StaticCodeGenerator {
     for (final node in fragment.nodes) {
       _generateTemplateNode(node);
     }
+    _flushHtml();
   }
 
   /// Generate code for a template node
@@ -264,6 +285,7 @@ class StaticCodeGenerator {
         _generateEachBlock(node);
       case AwaitBlockNode():
         // Await blocks are not supported in static generation
+        _flushHtml();
         _writeLine('// Await blocks are not supported in static generation');
       case SnippetBlockNode():
         _generateSnippetBlock(node);
@@ -276,6 +298,7 @@ class StaticCodeGenerator {
 
   /// Generate snippet block
   void _generateSnippetBlock(SnippetBlockNode node) {
+    _flushHtml(); // Flush before starting new function scope
     _writeLine('dynamic ${node.name}(${node.parameters}) {');
     _indent++;
     _writeLine('return (StringBuffer buffer) {');
@@ -284,6 +307,7 @@ class StaticCodeGenerator {
     for (final child in node.body) {
       _generateTemplateNode(child);
     }
+    _flushHtml(); // Flush end of snippet body
 
     _indent--;
     _writeLine('};');
@@ -294,23 +318,24 @@ class StaticCodeGenerator {
 
   /// Generate render tag
   void _generateRenderTag(RenderTagNode node) {
+    _flushHtml();
     _writeLine('(${node.expression})?.call(buffer);');
   }
 
   /// Generate text node
   void _generateTextNode(TextNode node) {
     if (node.data.trim().isEmpty) return;
-    _writeLine('buffer.write("${_escapeString(node.data)}");');
+    _emitStatic(node.data);
   }
 
   /// Generate expression tag
   void _generateExpressionTag(ExpressionTagNode node) {
-    _writeLine('buffer.write(${node.expression});');
+    _emitExpression(node.expression);
   }
 
   /// Generate HTML tag
   void _generateHtmlTag(HtmlTagNode node) {
-    _writeLine('buffer.write(${node.expression});');
+    _emitExpression(node.expression);
   }
 
   /// Generate element
@@ -325,14 +350,14 @@ class StaticCodeGenerator {
   /// Generate HTML element
   void _generateHtmlElement(ElementNode node) {
     // Opening tag
-    _writeLine('buffer.write("<${node.name}");');
+    _emitStatic('<${node.name}');
 
     // Generate attributes
     for (final attr in node.attributes) {
       _generateAttribute(attr);
     }
 
-    _writeLine('buffer.write(">");');
+    _emitStatic('>');
 
     // Generate children
     for (final child in node.children) {
@@ -340,11 +365,12 @@ class StaticCodeGenerator {
     }
 
     // Closing tag
-    _writeLine('buffer.write("</${node.name}>");');
+    _emitStatic('</${node.name}>');
   }
 
   /// Generate component
   void _generateComponent(ElementNode node) {
+    _flushHtml(); // Flush before component instantiation logic
     final componentClass = _capitalize(node.name);
     
     // Build props map from attributes
@@ -402,6 +428,7 @@ class StaticCodeGenerator {
         _generateRegularAttribute(attr);
       case SpreadAttribute():
         // Spread attributes not supported in static generation
+        _flushHtml();
         _writeLine('// Spread attributes are not supported in static generation');
       case EventAttribute():
         // Event attributes not supported in static generation
@@ -415,7 +442,7 @@ class StaticCodeGenerator {
   /// Generate regular attribute
   void _generateRegularAttribute(RegularAttribute attr) {
     if (attr.value.isEmpty) {
-      _writeLine('buffer.write(" ${attr.name}");');
+      _emitStatic(' ${attr.name}');
       return;
     }
 
@@ -424,34 +451,35 @@ class StaticCodeGenerator {
 
     if (hasExpression) {
       // Build attribute value from mixed content
-      _write('buffer.write(" ${attr.name}=\\"");');
-      _output.writeln();
+      _emitStatic(' ${attr.name}="');
       
       for (final value in attr.value) {
         if (value is TextAttributeValue) {
-          _writeLine('buffer.write("${_escapeString(value.text)}");');
+          _emitStatic(value.text);
         } else if (value is ExpressionAttributeValue) {
-          _writeLine('buffer.write(${value.expression});');
+          _emitExpression(value.expression);
         }
       }
       
-      _writeLine('buffer.write("\\"");');
+      _emitStatic('"');
     } else {
       // Static attribute
       final text =
           attr.value.whereType<TextAttributeValue>().map((v) => v.text).join();
-      _writeLine('buffer.write(" ${attr.name}=\\"${_escapeString(text)}\\"");');
+      _emitStatic(' ${attr.name}="${text}"'); // No _escapeString here, handled at flush
     }
   }
 
   /// Generate if block
   void _generateIfBlock(IfBlockNode node) {
+    _flushHtml();
     _writeLine('if (${node.condition}) {');
     _indent++;
 
     for (final child in node.consequent) {
       _generateTemplateNode(child);
     }
+    _flushHtml(); // Flush end of block
 
     _indent--;
     _writeLine('}');
@@ -463,6 +491,7 @@ class StaticCodeGenerator {
       for (final child in node.alternate!) {
         _generateTemplateNode(child);
       }
+      _flushHtml(); // Flush end of block
 
       _indent--;
       _writeLine('}');
@@ -471,6 +500,7 @@ class StaticCodeGenerator {
 
   /// Generate each block
   void _generateEachBlock(EachBlockNode node) {
+    _flushHtml();
     final indexName = node.indexName ?? 'index';
     _writeLine(
         'for (var $indexName = 0; $indexName < ${node.expression}.length; $indexName++) {');
@@ -480,6 +510,7 @@ class StaticCodeGenerator {
     for (final child in node.body) {
       _generateTemplateNode(child);
     }
+    _flushHtml(); // Flush end of block
 
     _indent--;
     _writeLine('}');

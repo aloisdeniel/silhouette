@@ -9,11 +9,9 @@ class Button {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<button");
-    buffer.write(" class=\"");
+    buffer.write("<button class=\"");
     buffer.write(buttonClass);
-    buffer.write("\"");
-    buffer.write(">");
+    buffer.write("\">");
     buffer.write(label);
     buffer.write("</button>");
   }

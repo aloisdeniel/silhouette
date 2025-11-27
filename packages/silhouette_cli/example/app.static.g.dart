@@ -7,38 +7,17 @@ class App {
   App({this.count = 0, this.message = ''});
 
   void build(StringBuffer buffer) {
-    buffer.write("<div");
-    buffer.write(" class=\"app\"");
-    buffer.write(">");
-    buffer.write("<h1");
-    buffer.write(">");
-    buffer.write("Custom Components Demo");
-    buffer.write("</h1>");
-    buffer.write("<div");
-    buffer.write(" class=\"counter\"");
-    buffer.write(">");
-    buffer.write("<p");
-    buffer.write(">");
-    buffer.write("Count: ");
+    buffer.write("<div class=\"app\"><h1>Custom Components Demo</h1><div class=\"counter\"><p>Count: ");
     buffer.write(count);
-    buffer.write("</p>");
-    buffer.write("<div");
-    buffer.write(" class=\"buttons\"");
-    buffer.write(">");
+    buffer.write("</p><div class=\"buttons\">");
     Button(label: "Increment", variant: "primary").build(buffer);
     Button(label: "Decrement", variant: "secondary").build(buffer);
     Button(label: "Reset", variant: "danger").build(buffer);
-    buffer.write("</div>");
-    buffer.write("</div>");
+    buffer.write("</div></div>");
     if (message.isNotEmpty) {
-      buffer.write("<div");
-      buffer.write(" class=\"message\"");
-      buffer.write(">");
-      buffer.write("<p");
-      buffer.write(">");
+      buffer.write("<div class=\"message\"><p>");
       buffer.write(message);
-      buffer.write("</p>");
-      buffer.write("</div>");
+      buffer.write("</p></div>");
     }
     buffer.write("</div>");
   }
