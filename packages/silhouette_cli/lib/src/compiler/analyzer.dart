@@ -611,12 +611,14 @@ class _ScriptVisitor extends RecursiveAstVisitor<void> {
         }
       }
       
-      // Check for $props() pattern binding
-      if (initializer is dart_ast.MethodInvocation &&
-          initializer.methodName.name == r'$props') {
-        _handlePropsDeclaration(node, initializer);
-        super.visitVariableDeclaration(node);
-        return;
+      // Check for props pattern binding (both $props and _rune_props)
+      if (initializer is dart_ast.MethodInvocation) {
+        final methodName = initializer.methodName.name;
+        if (methodName == r'$props' || methodName == '_rune_props') {
+          _handlePropsDeclaration(node, initializer);
+          super.visitVariableDeclaration(node);
+          return;
+        }
       }
     }
     
@@ -639,8 +641,9 @@ class _ScriptVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(dart_ast.MethodInvocation node) {
-    // Handle standalone $effect calls
-    if (node.methodName.name == r'$effect') {
+    // Handle standalone effect calls (both $effect and _rune_effect)
+    final methodName = node.methodName.name;
+    if (methodName == r'$effect' || methodName == '_rune_effect') {
       _extractIdentifiersFromExpression(node);
     }
     
@@ -696,10 +699,10 @@ class _ScriptVisitor extends RecursiveAstVisitor<void> {
   /// Detect rune type from function name
   RuneType? _detectRuneType(String name) {
     return switch (name) {
-      r'$state' => RuneType.state,
-      r'$derived' => RuneType.derived,
-      r'$effect' => RuneType.effect,
-      r'$props' => RuneType.props,
+      r'$state' || '_rune_state' => RuneType.state,
+      r'$derived' || '_rune_derived' => RuneType.derived,
+      r'$effect' || '_rune_effect' => RuneType.effect,
+      r'$props' || '_rune_props' => RuneType.props,
       _ => null,
     };
   }
