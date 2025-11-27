@@ -3,7 +3,6 @@
 /// Generates Dart code that renders HTML as a string
 library;
 
-import 'dart:math';
 import '../ast.dart';
 import '../analyzer.dart';
 
@@ -61,6 +60,9 @@ class StaticCodeGenerator {
 
     // Generate build method
     _generateBuildMethod();
+
+    // Generate style method
+    _generateStyleMethod();
 
     _indent--;
     _writeLine('}');
@@ -272,6 +274,88 @@ class StaticCodeGenerator {
 
     _indent--;
     _writeLine('}');
+    _writeLine();
+  }
+
+  /// Generate style method
+  void _generateStyleMethod() {
+    if (ast.style == null) return;
+
+    _writeLine('static void style(StringBuffer buffer) {');
+    _indent++;
+
+    final styleContent = ast.style!.content.trim();
+    if (styleContent.isEmpty) {
+      _indent--;
+      _writeLine('}');
+      return;
+    }
+
+    // Parse and scope the CSS
+    final scopedCss = _scopeCss(styleContent);
+    _writeLine('buffer.write("${_escapeString(scopedCss)}");');
+
+    _indent--;
+    _writeLine('}');
+  }
+
+  /// Scope CSS selectors with componentId class using string manipulation
+  String _scopeCss(String cssContent) {
+    // Simple regex-based approach to scope CSS
+    // Match CSS rules: selector { properties }
+    final rulePattern = RegExp(
+      r'([^{}]+)\s*\{([^{}]*)\}',
+      multiLine: true,
+    );
+    
+    final scopedCss = StringBuffer();
+    var lastEnd = 0;
+    
+    for (final match in rulePattern.allMatches(cssContent)) {
+      // Add any content between rules (comments, etc.)
+      scopedCss.write(cssContent.substring(lastEnd, match.start));
+      
+      final selectors = match.group(1)!;
+      final properties = match.group(2)!;
+      
+      // Scope the selectors
+      final scopedSelectors = _scopeSelectors(selectors);
+      
+      // Write the scoped rule
+      scopedCss.write('$scopedSelectors { $properties}');
+      
+      lastEnd = match.end;
+    }
+    
+    // Add any remaining content
+    if (lastEnd < cssContent.length) {
+      scopedCss.write(cssContent.substring(lastEnd));
+    }
+    
+    return scopedCss.toString();
+  }
+
+  /// Scope a group of selectors
+  String _scopeSelectors(String selectors) {
+    return selectors
+        .split(',')
+        .map((s) => _scopeSingleSelector(s.trim()))
+        .join(', ');
+  }
+
+  /// Scope a single selector by prepending the componentId class
+  String _scopeSingleSelector(String selector) {
+    selector = selector.trim();
+    
+    // Skip special selectors
+    if (selector.startsWith(':root') || 
+        selector.startsWith('@') ||
+        selector.isEmpty) {
+      return selector;
+    }
+    
+    // Prepend the componentId class as a descendant selector
+    return '.$componentId $selector';
   }
 
   /// Set component ID on all template nodes
@@ -671,3 +755,5 @@ class StaticCodeGenerator {
     }
   }
 }
+
+

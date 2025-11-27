@@ -1,0 +1,30 @@
+
+<script>
+  final (
+    :String name,
+    :int count,
+  ) = $props((
+    name: 'World',
+    count: 0,
+  ));
+  
+  final String greeting = $derived(() => 'Hello, $name!');
+  final String displayCount = $derived(() => 'Count: $count');
+  
+  $effect(() {
+    print('Greeting changed: $greeting');
+  });
+</script>
+
+<div>
+  <h1>{greeting}</h1>
+  <p>{displayCount}</p>
+  <p>Name is {name}</p>
+</div>
+
+<style>
+  div {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+</style>

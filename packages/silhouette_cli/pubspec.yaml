@@ -13,6 +13,7 @@ dependencies:
   meta: ^1.9.0
   web: ^1.1.0
   analyzer: ^9.0.0
+  csslib: ^1.0.0
 
 dev_dependencies:
   lints: ^3.0.0
