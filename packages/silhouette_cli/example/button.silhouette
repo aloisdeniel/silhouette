@@ -1,8 +1,11 @@
 <script>
   final (
-    :String label = 'Click me',
-    :String variant = 'primary',
-  ) = $props();
+    :String label,
+    :String variant,
+  ) = $props((
+    label: 'Click me',
+    variant: 'primary',
+  ));
   
   final String buttonClass = $derived(() => 'btn btn-$variant');
   

@@ -1,10 +1,14 @@
 <script>
   final (
     :String title,
-    :String subtitle = 'No subtitle',
-    :int maxItems = 10,
-    :bool showHeader = true,
-  ) = $props();
+    :String subtitle,
+    :int maxItems,
+    :bool showHeader,
+  ) = $props((
+    subtitle: 'No subtitle',
+    maxItems: 10,
+    showHeader: true,
+  ));
   
   // Derived values using props
   final String headerText = $derived(() => showHeader ? title : '');

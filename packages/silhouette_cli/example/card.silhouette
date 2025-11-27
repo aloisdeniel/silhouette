@@ -1,9 +1,13 @@
 <script>
   final (
-    :String title = 'Card Title',
-    :String description = 'Card description goes here',
-    :bool highlighted = false,
-  ) = $props();
+    :String title,
+    :String description,
+    :bool highlighted,
+  ) = $props((
+    title: 'Card Title',
+    description: 'Card description goes here',
+    highlighted: false,
+  ));
   
   final String cardClass = $derived(() => highlighted ? 'card highlighted' : 'card');
   

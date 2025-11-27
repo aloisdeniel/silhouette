@@ -2,9 +2,12 @@
   final (
     :String username,
     :String email,
-    :int age = 18,
-    :bool isPremium = false,
-  ) = $props();
+    :int age,
+    :bool isPremium,
+  ) = $props((
+    age: 18,
+    isPremium: false,
+  ));
   
   final String displayInfo = $derived(() => '$username ($email)');
   final String statusText = $derived(() => isPremium ? 'Premium User' : 'Free User');

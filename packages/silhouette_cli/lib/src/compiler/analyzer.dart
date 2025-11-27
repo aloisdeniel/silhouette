@@ -159,9 +159,10 @@ class Analyzer {
   /// Analyze $props() declarations from the full script content
   void _analyzePropsDeclarations(String content) {
     // Detect property declarations with $props() destructuring syntax
-    // Pattern: final (:Type name = defaultValue, :Type name2, ...) = $props();
+    // New pattern: final (:Type name, :Type name2) = $props((name: defaultValue, name2: defaultValue2));
+    // Old pattern: final (:Type name) = $props(); (no defaults)
     final propsPattern = RegExp(
-      r'final\s+\(\s*([^)]+)\s*\)\s*=\s*\$props\s*\(\s*\)\s*;',
+      r'final\s+\(\s*([^)]+)\s*\)\s*=\s*\$props\s*\(\s*(\([^)]*\))?\s*\)\s*;',
       multiLine: true,
       dotAll: true,
     );
@@ -169,21 +170,36 @@ class Analyzer {
     final propsMatches = propsPattern.allMatches(content);
     for (final match in propsMatches) {
       final propsContent = match.group(1)!;
+      final defaultsContent = match.group(2); // Optional defaults like (name: value, ...)
+      
+      // Parse defaults if provided
+      final defaults = <String, String>{};
+      if (defaultsContent != null) {
+        // Remove outer parentheses
+        final defaultsInner = defaultsContent.substring(1, defaultsContent.length - 1);
+        // Parse named parameters: name: value, name2: value2
+        final defaultPattern = RegExp(r'(\w+)\s*:\s*([^,]+)');
+        final defaultMatches = defaultPattern.allMatches(defaultsInner);
+        for (final defaultMatch in defaultMatches) {
+          final name = defaultMatch.group(1)!;
+          var value = defaultMatch.group(2)!.trim();
+          // Clean up trailing comma
+          if (value.endsWith(',')) {
+            value = value.substring(0, value.length - 1).trim();
+          }
+          defaults[name] = value;
+        }
+      }
       
       // Parse each property from the record destructuring
-      // Pattern: :Type name or :Type name = defaultValue
-      final propPattern = RegExp(r':([A-Za-z_]\w*(?:<[^>]+>)?)\s+(\w+)(?:\s*=\s*([^,]+))?');
+      // Pattern: :Type name
+      final propPattern = RegExp(r':([A-Za-z_]\w*(?:<[^>]+>)?)\s+(\w+)');
       final propMatches = propPattern.allMatches(propsContent);
       
       for (final propMatch in propMatches) {
         final type = propMatch.group(1)!;
         final name = propMatch.group(2)!;
-        var defaultValue = propMatch.group(3)?.trim();
-        
-        // Clean up default value - remove trailing comma
-        if (defaultValue != null && defaultValue.endsWith(',')) {
-          defaultValue = defaultValue.substring(0, defaultValue.length - 1).trim();
-        }
+        final defaultValue = defaults[name]; // Get default from $props(...) if exists
         
         final binding = Binding(
           name: name,
