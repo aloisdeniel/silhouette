@@ -8,7 +8,7 @@ class Counter {
   }
 
   void build(StringBuffer buffer) {
-    buffer.write("<div><h1>Counter Example</h1><p>Count: ");
+    buffer.write("<div class=\"other\"><h1>Counter Example</h1><p>Count: ");
     buffer.write(count);
     buffer.write("</p><p>Double: ");
     buffer.write(double);

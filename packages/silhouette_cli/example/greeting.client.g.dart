@@ -24,6 +24,7 @@ class Greeting {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
+    root.className = 'silhouette-greeting-868898';
 
     final _div_0 = document.createElement('div');
     final _h1_1 = document.createElement('h1');

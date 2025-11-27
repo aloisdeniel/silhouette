@@ -15,7 +15,7 @@
   }
 </script>
 
-<div>
+<div class="other">
   <h1>Counter Example</h1>
   <p>Count: {count}</p>
   <p>Double: {double}</p>

@@ -21,6 +21,7 @@ class Dashboard {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
+    root.className = 'silhouette-dashboard-209909';
 
     final _div_0 = document.createElement('div');
     _div_0.setAttribute("class", "dashboard");

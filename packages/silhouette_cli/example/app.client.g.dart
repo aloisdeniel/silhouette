@@ -39,6 +39,7 @@ class App {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
+    root.className = 'silhouette-app-393710';
 
     final _div_0 = document.createElement('div');
     _div_0.setAttribute("class", "app");

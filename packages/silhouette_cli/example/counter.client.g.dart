@@ -16,8 +16,8 @@ class Counter {
     _count = state(0);
     _double = derived(() => count * 2);
     effect(() {
-    print('Count is now: $count');
-  });
+      print('Count is now: $count');
+    });
   }
 
   void increment() {
@@ -30,8 +30,10 @@ class Counter {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
+    root.className = 'silhouette-counter-307430';
 
     final _div_0 = document.createElement('div');
+    _div_0.setAttribute("class", "other");
     final _h1_1 = document.createElement('h1');
     final _text_2 = document.createTextNode("Counter Example");
     _h1_1.appendChild(_text_2);
@@ -55,16 +57,20 @@ class Counter {
     });
     _div_0.appendChild(_p_6);
     final _button_9 = document.createElement('button');
-    _button_9.addEventListener('click', (Event event) {
-      increment();
-    }.toJS);
+    _button_9.addEventListener(
+        'click',
+        (Event event) {
+          increment();
+        }.toJS);
     final _text_10 = document.createTextNode("Increment");
     _button_9.appendChild(_text_10);
     _div_0.appendChild(_button_9);
     final _button_11 = document.createElement('button');
-    _button_11.addEventListener('click', (Event event) {
-      decrement();
-    }.toJS);
+    _button_11.addEventListener(
+        'click',
+        (Event event) {
+          decrement();
+        }.toJS);
     final _text_12 = document.createTextNode("Decrement");
     _button_11.appendChild(_text_12);
     _div_0.appendChild(_button_11);
@@ -79,8 +85,7 @@ class Counter {
         final _text_15 = document.createTextNode("Count is greater than 10!");
         _p_14.appendChild(_text_15);
         _if_13.appendChild(_p_14);
-      }
-      else {
+      } else {
         final _p_16 = document.createElement('p');
         final _text_17 = document.createTextNode("Count is 10 or less");
         _p_16.appendChild(_text_17);
@@ -96,4 +101,3 @@ class Counter {
     root.remove();
   }
 }
-

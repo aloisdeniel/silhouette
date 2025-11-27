@@ -21,6 +21,7 @@ class Card {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
+    root.className = 'silhouette-card-766638';
 
     final _div_0 = document.createElement('div');
     effect(() {

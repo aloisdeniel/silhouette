@@ -39,6 +39,7 @@ class PropsDemo {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
+    root.className = 'silhouette-propsdemo-631652';
 
     final _div_0 = document.createElement('div');
     _div_0.setAttribute("class", "props-demo");
