@@ -7,7 +7,7 @@ class TodoList {
 
   late final List<Todo> filteredTodos;
 
-  TodoList({this.todos = [], this.newTodo = '', this.filter = 'all'}) {
+  TodoList({this.todos = const <Todo>[], this.newTodo = '', this.filter = 'all'}) {
     filteredTodos = todos.where((t) => !t.completed).toList();
   }
 
