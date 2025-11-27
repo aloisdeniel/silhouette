@@ -1,4 +1,6 @@
 class Greeting {
+  static const String componentId = 'silhouette-greeting-676237';
+
   final String name;
   final int count;
 

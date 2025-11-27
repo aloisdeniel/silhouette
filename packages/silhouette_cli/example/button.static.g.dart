@@ -1,4 +1,6 @@
 class Button {
+  static const String componentId = 'silhouette-button-958031';
+
   final String label;
   final String variant;
 

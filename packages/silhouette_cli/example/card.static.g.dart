@@ -1,4 +1,6 @@
 class Card {
+  static const String componentId = 'silhouette-card-756474';
+
   final String title;
   final String description;
   final bool highlighted;

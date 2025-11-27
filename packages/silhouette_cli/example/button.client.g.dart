@@ -20,7 +20,7 @@ class Button {
 
   void mount(HTMLElement target) {
     root = document.createElement('div') as HTMLElement;
-    root.className = 'silhouette-button-561227';
+    root.className = 'silhouette-button-106372';
 
     final _button_0 = document.createElement('button');
     effect(() {

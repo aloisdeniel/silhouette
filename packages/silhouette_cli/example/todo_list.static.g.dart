@@ -1,6 +1,8 @@
 import 'todo.dart';
 
 class TodoList {
+  static const String componentId = 'silhouette-todolist-448017';
+
   final List<Todo> todos;
   final String newTodo;
   final String filter;

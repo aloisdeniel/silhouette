@@ -1,4 +1,6 @@
 class Counter {
+  static const String componentId = 'silhouette-counter-750174';
+
   final int count;
 
   late final int double;

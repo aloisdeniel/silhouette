@@ -1,4 +1,6 @@
 class PropsDemo {
+  static const String componentId = 'silhouette-propsdemo-840048';
+
   final String title;
   final String subtitle;
   final int maxItems;

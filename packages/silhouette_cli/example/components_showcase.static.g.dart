@@ -2,6 +2,8 @@ import 'card.static.g.dart';
 import 'button.static.g.dart';
 
 class ComponentsShowcase {
+  static const String componentId = 'silhouette-componentsshowcase-612339';
+
   final int counter;
   final int selectedCard;
 

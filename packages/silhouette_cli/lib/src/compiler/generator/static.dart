@@ -3,6 +3,7 @@
 /// Generates Dart code that renders HTML as a string
 library;
 
+import 'dart:math';
 import '../ast.dart';
 import '../analyzer.dart';
 
@@ -13,8 +14,19 @@ class StaticCodeGenerator {
   final StringBuffer _output = StringBuffer();
   final StringBuffer _pendingHtml = StringBuffer();
   int _indent = 0;
+  late final String _componentId;
 
-  StaticCodeGenerator(this.ast, this.analysis, {this.componentName = 'Component'});
+  StaticCodeGenerator(this.ast, this.analysis, {this.componentName = 'Component'}) {
+    _componentId = _generateComponentId();
+  }
+
+  /// Generate a unique component ID based on name and randomness
+  String _generateComponentId() {
+    final random = Random();
+    final randomPart = random.nextInt(999999).toString().padLeft(6, '0');
+    final namePart = componentName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return 'silhouette-$namePart-$randomPart';
+  }
 
   /// Generate Dart code
   String generate() {
@@ -38,6 +50,10 @@ class StaticCodeGenerator {
     final className = componentName;
     _writeLine('class $className {');
     _indent++;
+
+    // Generate component ID field
+    _writeLine('static const String componentId = \'$_componentId\';');
+    _writeLine();
 
     // Generate property fields (props and state)
     _generatePropertyFields();
@@ -253,11 +269,70 @@ class StaticCodeGenerator {
     _writeLine('void build(StringBuffer buffer) {');
     _indent++;
     
+    // Set component ID on all template nodes
+    _setComponentIdOnNodes(ast.fragment);
+    
     // Generate HTML from template
     _generateFragment(ast.fragment);
     
     _indent--;
     _writeLine('}');
+  }
+
+  /// Set component ID on all template nodes
+  void _setComponentIdOnNodes(FragmentNode fragment) {
+    for (final node in fragment.nodes) {
+      _setComponentIdOnNode(node);
+    }
+  }
+
+  /// Set component ID on a single template node and its children
+  void _setComponentIdOnNode(TemplateNode node) {
+    node.componentId = _componentId;
+    
+    if (node is ElementNode) {
+      for (final child in node.children) {
+        _setComponentIdOnNode(child);
+      }
+    } else if (node is IfBlockNode) {
+      for (final child in node.consequent) {
+        _setComponentIdOnNode(child);
+      }
+      if (node.alternate != null) {
+        for (final child in node.alternate!) {
+          _setComponentIdOnNode(child);
+        }
+      }
+    } else if (node is EachBlockNode) {
+      for (final child in node.body) {
+        _setComponentIdOnNode(child);
+      }
+      if (node.fallback != null) {
+        for (final child in node.fallback!) {
+          _setComponentIdOnNode(child);
+        }
+      }
+    } else if (node is AwaitBlockNode) {
+      if (node.pending != null) {
+        for (final child in node.pending!) {
+          _setComponentIdOnNode(child);
+        }
+      }
+      if (node.then != null) {
+        for (final child in node.then!) {
+          _setComponentIdOnNode(child);
+        }
+      }
+      if (node.catchBlock != null) {
+        for (final child in node.catchBlock!) {
+          _setComponentIdOnNode(child);
+        }
+      }
+    } else if (node is SnippetBlockNode) {
+      for (final child in node.body) {
+        _setComponentIdOnNode(child);
+      }
+    }
   }
 
   /// Generate code for a fragment
